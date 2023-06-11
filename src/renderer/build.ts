@@ -131,11 +131,11 @@ function renderBlogHome(gitLines: GitLine[]) {
       const [char1, commitHash, ...commitMessage] =
         line.message.split(' ')
       return [
-        '<h2>',
+        '<div>',
         char1,
         `<span class="commitHash">${commitHash}</span>`,
         commitMessage.join(' '),
-        '</h2>'
+        '</div>'
       ].join(' ')
     })
     .join('')
@@ -145,7 +145,12 @@ function renderBlogHome(gitLines: GitLine[]) {
     '<link rel="stylesheet" href="styles/home.css" />',
     devJs,
     header,
-    `<main><div class="innerContainer">${logList}</div></main>`
+    `<main>
+      <div class="innerContainer">
+        <h1>Home</h1>
+        ${logList}
+      </div>
+     </main>`
   ].join('\n')
 }
 
