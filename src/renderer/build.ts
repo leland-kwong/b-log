@@ -50,14 +50,22 @@ function renderBlogHome(gitLines: GitLine[]) {
     .map((line) => {
       if (line.type === 'file') {
         const slug = slugFromGitLine(line)
-        return `<div><a href="${slug}">| ${line.message}</a></div>`
+        return `<div><a href="${slug}">${line.message.replace(
+          /\s/g,
+          '&nbsp;'
+        )}</a></div>`
       }
 
       return `<h2>${line.message}</h2>`
     })
-    .join('\n')
+    .join('')
 
-  return [...baseStyles, devJs, logList].join('\n')
+  return [
+    ...baseStyles,
+    '<link rel="stylesheet" href="styles/home.css" />',
+    devJs,
+    logList
+  ].join('\n')
 }
 
 interface Page {
@@ -103,7 +111,7 @@ function writePages(pages: Page[]) {
 }
 
 exec(
-  'git log --graph --oneline --name-status -- "src/documents/"',
+  'git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"',
   async (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`)
