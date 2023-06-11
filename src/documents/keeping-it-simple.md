@@ -4,7 +4,6 @@ This is the third iteration of my personal site and the simplest by far. I came 
 
 The build process is really quite simple:
 1. get the entire git commit tree
-
     ```bash
     git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"
     ```
