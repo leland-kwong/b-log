@@ -24,7 +24,8 @@ const baseStyles = [
   <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">`,
   '<link rel="stylesheet" href="styles/reset.css" />',
   '<link rel="stylesheet" href="styles/base.css" />',
-  '<link rel="stylesheet" href="styles/header.css" />'
+  '<link rel="stylesheet" href="styles/header.css" />',
+  '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
 ]
 const devJs =
   process.env.NODE_ENV === 'development'
