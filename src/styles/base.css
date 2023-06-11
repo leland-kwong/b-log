@@ -4,6 +4,7 @@
 
 body {
   font-family: monospace;
+  font-size: 1rem;
   margin: 16px auto;
   max-width: 800px;
   line-height: 1.3;
@@ -20,4 +21,17 @@ a:hover {
 
 p {
   margin-bottom: 1.3em;
+}
+
+code {
+  background: #e3e3e3;
+}
+
+pre,
+code {
+  font-family: monospace !important;
+}
+
+ol {
+  list-style: number;
 }

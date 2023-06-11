@@ -1,3 +1,3 @@
 # B-LOG
 
-A website that renders links via `git-log`.
+A website that is generated from reading `git-log`.
