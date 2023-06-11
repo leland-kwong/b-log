@@ -1,0 +1,15 @@
+<link rel="stylesheet" href="styles/reset.css" /><link rel="stylesheet" href="styles/base.css" /><link rel="stylesheet" href="styles/prism-theme.min.css" /><link rel="stylesheet" href="styles/page.css" /><h1>keeping it simple</h1>
+<p>This is the third iteration of my personal site and the simplest by far. I came up with this idea of using <code>git-log</code> as the source of data to build the site&#39;s content.</p>
+<p>The build process is really quite simple:</p>
+<ol>
+<li><p>get the entire git commit tree</p>
+<pre class="language-bash"><code class="language-bash"><span class="token function">git</span> log <span class="token parameter variable">--graph</span> <span class="token parameter variable">--oneline</span> --name-status --diff-filter<span class="token operator">=</span>AM -- <span class="token string">"src/documents/"</span></code></pre></li>
+<li><p>process each line to extract the commit hash and file path</p>
+</li>
+<li><p>render individual pages based on the file path of each modified file</p>
+</li>
+<li><p>write each page to a <code>build</code> folder</p>
+</li>
+<li><p>deploy to a static site service such as <a href="https://surge.sh">surge.sh</a></p>
+</li>
+</ol>
