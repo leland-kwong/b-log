@@ -6,7 +6,7 @@ This is the third iteration of my personal site and the simplest by far. I came 
 
 The build process is actually quite simple:
 
-1. Get the entire git commit tree:
+1. Get the git commit log filtering for just the commits that contained document changes:
     ```bash
     git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"
     ```
