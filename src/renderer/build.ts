@@ -206,18 +206,25 @@ exec(
     }
     const parsedLog = parseGitLog(stdout)
     const renderedHomePage = renderBlogHome(parsedLog)
-    try {
-      await fs.emptyDir(buildDir)
-      await fs.writeFile(
-        `${buildDir}/index.html`,
-        renderedHomePage
-      )
-      const renderedPages = await renderPages(parsedLog)
-      await writePages(renderedPages)
-      await fs.copy('src/styles', `${buildDir}/styles`)
-      console.log('html files generated')
-    } catch (err) {
-      console.error(err)
-    }
+
+    console.log('Preparing build...')
+    const buildStartTime = performance.now()
+
+    await fs.emptyDir(buildDir)
+    await fs.writeFile(
+      `${buildDir}/index.html`,
+      renderedHomePage
+    )
+    const renderedPages = await renderPages(parsedLog)
+    await writePages(renderedPages)
+    await fs.copy('src/styles', `${buildDir}/styles`)
+
+    const buildTotalTime =
+      performance.now() - buildStartTime
+    console.log(
+      'Build complete! Took',
+      buildTotalTime,
+      'ms'
+    )
   }
 )
