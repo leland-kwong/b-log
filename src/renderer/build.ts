@@ -1,11 +1,17 @@
-import { exec } from 'child_process'
+import util from 'util'
+import childProcess from 'child_process'
 import fs from 'fs-extra'
 import { marked } from 'marked'
 import Prism from 'prismjs'
 import loadLanguages from 'prismjs/components/'
 import * as async from 'async'
 
-import { measurePerformance } from './utils'
+import {
+  measurePerformance,
+  cacheGet,
+  cacheSet,
+  cacheClose
+} from './utils'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
@@ -20,17 +26,17 @@ const buildDir =
     ? '.local-dev-build'
     : 'build'
 
-const baseStyles = [
-  /* html */ `
+const headContent = /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">`,
-  '<link rel="stylesheet" href="styles/reset.css" />',
-  '<link rel="stylesheet" href="styles/base.css" />',
-  '<link rel="stylesheet" href="styles/header.css" />',
-  '<link rel="stylesheet" href="styles/footer.css" />',
-  '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
-]
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/reset.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/header.css" />
+  <link rel="stylesheet" href="styles/footer.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+`
+
 const devJs =
   process.env.NODE_ENV === 'development'
     ? `<script>
@@ -153,7 +159,7 @@ function renderBlogHome(gitLines: GitLine[]) {
     .join('')
 
   return [
-    ...baseStyles,
+    headContent,
     '<link rel="stylesheet" href="styles/home.css" />',
     devJs,
     header,
@@ -174,22 +180,27 @@ interface Page {
   slug: string
 }
 
-function getGitFileFromHash(
+async function getGitFileFromHash(
   commitHash: string,
   filePath: string
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    exec(
-      `git show ${commitHash}:${filePath}`,
-      (error, stdout) => {
-        if (error) {
-          reject(error)
-          return
-        }
-        resolve(stdout)
-      }
-    )
-  })
+  const cacheKey = `${commitHash}:${filePath}`
+  const cached = await cacheGet(cacheKey)
+
+  if (cached) {
+    return cached
+  }
+
+  const exec = util.promisify(childProcess.exec)
+  const { stderr, stdout } = await exec(
+    `git show ${cacheKey}`
+  )
+
+  if (stderr) {
+    return stderr
+  }
+  cacheSet(cacheKey, stdout)
+  return stdout
 }
 
 function renderPages(gitLines: GitLine[]): Promise<Page[]> {
@@ -207,7 +218,7 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
 
         return {
           html: [
-            ...baseStyles,
+            headContent,
             '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
             devJs,
@@ -252,31 +263,35 @@ function writePages(pages: Page[]): Promise<void> {
 console.log('Preparing build...')
 const buildStartTime = performance.now()
 
-exec(
+childProcess.exec(
   'git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"',
   async (error, stdout, stderr) => {
     if (error) {
       console.log(`error: ${error.message}`)
+      await cacheClose()
       return
     }
     if (stderr) {
       console.log(`stderr: ${stderr}`)
+      await cacheClose()
       return
     }
     const parsedLog = parseGitLog(stdout)
     const renderedHomePage = renderBlogHome(parsedLog)
 
-    await fs.emptyDir(buildDir)
-    await fs.writeFile(
-      `${buildDir}/index.html`,
-      renderedHomePage
-    )
     const renderedPages = await measurePerformance(
-      () => renderPages(parsedLog),
-      'Render pages'
+      'Render pages',
+      () => renderPages(parsedLog)
     )
-    await writePages(renderedPages)
-    await fs.copy('src/styles', `${buildDir}/styles`)
+    await measurePerformance('Write pages', async () => {
+      await fs.emptyDir(buildDir)
+      await fs.writeFile(
+        `${buildDir}/index.html`,
+        renderedHomePage
+      )
+      await writePages(renderedPages)
+      await fs.copy('src/styles', `${buildDir}/styles`)
+    })
 
     const buildTotalTime =
       performance.now() - buildStartTime
@@ -286,5 +301,6 @@ exec(
       'ms'
     )
     console.log('Build output in', buildDir)
+    await cacheClose()
   }
 )

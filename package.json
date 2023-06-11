@@ -18,6 +18,7 @@
     "@types/watch": "^1.0.3",
     "async": "^3.2.4",
     "fs-extra": "^11.1.1",
+    "level": "^8.0.0",
     "marked": "^5.1.0",
     "prismjs": "^1.29.0",
     "ts-node": "^10.9.1",
