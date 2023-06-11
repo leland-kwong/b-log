@@ -12,6 +12,9 @@ body {
   font-size: 1rem;
   line-height: 1.5;
   color: var(--body-text-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 a {
@@ -68,4 +71,8 @@ h2 {
   font-size: 1.5em;
   margin: 0.83em -0.4em;
   padding: 0 0.4em;
+}
+
+main {
+  flex-grow: 1;
 }

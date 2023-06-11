@@ -25,6 +25,7 @@ const baseStyles = [
   '<link rel="stylesheet" href="styles/reset.css" />',
   '<link rel="stylesheet" href="styles/base.css" />',
   '<link rel="stylesheet" href="styles/header.css" />',
+  '<link rel="stylesheet" href="styles/footer.css" />',
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
 ]
 const devJs =
@@ -41,6 +42,13 @@ const header = /* html */ `
       <a href="index.html" class="headerLink">Home</a>
     </div>
   </header>
+`
+const footer = /* html */ `
+  <footer class="footer">
+    <div class="innerContainer">
+      Deployed via <a href="https://vercel.com/">Vercel</a>
+    </div>
+  </footer>
 `
 
 function highlightCode(code: string, lang: string) {
@@ -153,7 +161,8 @@ function renderBlogHome(gitLines: GitLine[]) {
           ${logList}
         </div>
       </div>
-     </main>`
+     </main>`,
+    footer
   ].join('\n')
 }
 
@@ -207,7 +216,8 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
                   headerIds: false
                 })}
               </div>
-            </main>`
+            </main>`,
+            footer
           ].join(''),
           slug
         }
