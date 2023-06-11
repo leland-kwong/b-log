@@ -5,6 +5,8 @@ import Prism from 'prismjs'
 import loadLanguages from 'prismjs/components/'
 import * as async from 'async'
 
+import { measurePerformance } from './utils'
+
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
 type GitLine = {
@@ -269,7 +271,10 @@ exec(
       `${buildDir}/index.html`,
       renderedHomePage
     )
-    const renderedPages = await renderPages(parsedLog)
+    const renderedPages = await measurePerformance(
+      () => renderPages(parsedLog),
+      'Render pages'
+    )
     await writePages(renderedPages)
     await fs.copy('src/styles', `${buildDir}/styles`)
 
