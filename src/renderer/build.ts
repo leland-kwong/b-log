@@ -56,7 +56,15 @@ function renderBlogHome(gitLines: GitLine[]) {
         )}</a></div>`
       }
 
-      return `<h2>${line.message}</h2>`
+      const [char1, commitHash, ...commitMessage] =
+        line.message.split(' ')
+      return [
+        '<h2>',
+        char1,
+        `<span class="commitHash">${commitHash}</span>`,
+        commitMessage.join(' '),
+        '</h2>'
+      ].join(' ')
     })
     .join('')
 
