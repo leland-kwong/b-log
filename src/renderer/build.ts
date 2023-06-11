@@ -53,6 +53,8 @@ marked.use({
 
 function slugFromGitLine(gitLine: GitLine) {
   return [
+    gitLine.commitHash,
+    '-',
     gitLine.message.split('/').at(-1)?.replace(/.md/, '')!,
     '.html'
   ].join('')
