@@ -3,6 +3,7 @@ import fs from 'fs-extra'
 import { marked } from 'marked'
 import Prism from 'prismjs'
 import loadLanguages from 'prismjs/components/'
+import * as async from 'async'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
@@ -225,13 +226,29 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
   )
 }
 
-function writePages(pages: Page[]) {
-  return Promise.all(
-    pages.map((page) =>
-      fs.writeFile(`${buildDir}/${page.slug}`, page.html)
+function writePages(pages: Page[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    async.eachSeries(
+      pages,
+      async (page) => {
+        await fs.writeFile(
+          `${buildDir}/${page.slug}`,
+          page.html
+        )
+      },
+      (err) => {
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve()
+      }
     )
-  )
+  })
 }
+
+console.log('Preparing build...')
+const buildStartTime = performance.now()
 
 exec(
   'git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"',
@@ -246,9 +263,6 @@ exec(
     }
     const parsedLog = parseGitLog(stdout)
     const renderedHomePage = renderBlogHome(parsedLog)
-
-    console.log('Preparing build...')
-    const buildStartTime = performance.now()
 
     await fs.emptyDir(buildDir)
     await fs.writeFile(
