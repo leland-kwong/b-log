@@ -19,7 +19,8 @@ const buildDir =
 
 const baseStyles = [
   '<link rel="stylesheet" href="styles/reset.css" />',
-  '<link rel="stylesheet" href="styles/base.css" />'
+  '<link rel="stylesheet" href="styles/base.css" />',
+  '<link rel="stylesheet" href="styles/header.css" />'
 ]
 const devJs =
   process.env.NODE_ENV === 'development'
@@ -29,6 +30,13 @@ const devJs =
       })
     </script>`
     : ''
+const header = /* html */ `
+  <header class="header">
+    <div class="innerContainer">
+      <a href="index.html" class="headerLink">Home</a>
+    </div>
+  </header>
+`
 
 function highlightCode(code: string, lang: string) {
   const langDef = Prism.languages[lang]
@@ -132,7 +140,8 @@ function renderBlogHome(gitLines: GitLine[]) {
     ...baseStyles,
     '<link rel="stylesheet" href="styles/home.css" />',
     devJs,
-    logList
+    header,
+    `<main><div class="innerContainer">${logList}</div></main>`
   ].join('\n')
 }
 
@@ -178,10 +187,15 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
             '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
             devJs,
-            marked.parse(gitFile, {
-              mangle: false,
-              headerIds: false
-            })
+            header,
+            `<main>
+              <div class="innerContainer">
+                ${marked.parse(gitFile, {
+                  mangle: false,
+                  headerIds: false
+                })}
+              </div>
+            </main>`
           ].join(''),
           slug
         }
