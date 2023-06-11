@@ -69,8 +69,9 @@ function parseGitLog(log: string) {
       .reduce(
         (acc, line) => {
           const { commitHash, parsed } = acc
+          const isCommitLine = /^\*/.test(line)
 
-          if (/^\*/.test(line)) {
+          if (isCommitLine) {
             return {
               commitHash: line.split(' ')[1],
               parsed: [
