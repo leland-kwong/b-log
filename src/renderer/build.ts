@@ -2,6 +2,9 @@ import { exec } from 'child_process'
 import fs from 'fs-extra'
 import { marked } from 'marked'
 import Prism from 'prismjs'
+import loadLanguages from 'prismjs/components/'
+
+loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
 type GitLine = {
   type: 'commit' | 'file'
@@ -161,8 +164,6 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
           line.commitHash,
           filePath
         )
-
-        console.log('gitFile', gitFile)
 
         return {
           html: [
