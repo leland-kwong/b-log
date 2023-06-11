@@ -42,7 +42,7 @@ code {
 }
 
 ol {
-  list-style: number;
+  list-style: decimal;
 }
 
 .innerContainer {
