@@ -10,4 +10,4 @@ The build process is really quite simple:
 2. Process each line to extract the commit hash and file path.
 3. Render individual pages based on the file path of each modified file.
 4. Write each page to a `build` folder.
-5. Deploy to a static site service such as [surge.sh](https://surge.sh).
+5. Deploy to a static site service such as [vercel](https://vercel.com) or [surge.sh](https://surge.sh).
