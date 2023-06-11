@@ -109,10 +109,11 @@ function renderBlogHome(gitLines: GitLine[]) {
     .map((line) => {
       if (line.type === 'file') {
         const slug = slugFromGitLine(line)
-        return `<div><a href="${slug}">${line.message.replace(
+        const commitMessage = line.message.replace(
           /\s/g,
           '&nbsp;'
-        )}</a></div>`
+        )
+        return `<div><a href="${slug}">${commitMessage}</a></div>`
       }
 
       const [char1, commitHash, ...commitMessage] =
