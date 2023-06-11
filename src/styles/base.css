@@ -1,6 +1,7 @@
 :root {
   --link-color: #1076d9;
-  --monospace-font: monospace;
+  --secondary-color: #ae3535;
+  --monospace-font: 'JetBrains Mono', monospace;
   --body-font: 'Geologica', sans-serif;
   --body-text-color: #000;
 }
@@ -33,6 +34,7 @@ code {
 pre,
 code {
   font-family: monospace !important;
+  border-radius: 0 !important;
 }
 
 ol {

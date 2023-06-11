@@ -21,7 +21,7 @@ const baseStyles = [
   /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&display=swap" rel="stylesheet">`,
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">`,
   '<link rel="stylesheet" href="styles/reset.css" />',
   '<link rel="stylesheet" href="styles/base.css" />',
   '<link rel="stylesheet" href="styles/header.css" />'
@@ -125,7 +125,7 @@ function renderBlogHome(gitLines: GitLine[]) {
           /\s/g,
           '&nbsp;'
         )
-        return `<div><a href="${slug}">${commitMessage}</a></div>`
+        return `<div><a class="postLink" href="${slug}">${commitMessage}</a></div>`
       }
 
       const [char1, commitHash, ...commitMessage] =

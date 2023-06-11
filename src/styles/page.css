@@ -1,10 +1,11 @@
 h1 {
   font-size: 2em;
+  margin: 0.67em -0.6em;
   font-weight: bold;
-  margin: 0.67em -0.7rem;
   font-family: var(--monospace-font);
   display: inline-block;
-  padding: 0 0.7rem;
-  background: var(--link-color);
+  padding: 0 0.6em;
+  background: var(--secondary-color);
   color: #fff;
+  box-shadow: 4px 4px 0 #000;
 }
