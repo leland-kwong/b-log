@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "ts-node src/renderer/build.ts",
+    "build:watch": "cd .local-dev-build && reload -b",
     "build:dev": "NODE_ENV=development npm run build",
     "prepare": "husky install"
   },
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@types/async": "^3.2.20",
-    "husky": "^8.0.0"
+    "husky": "^8.0.0",
+    "reload": "^3.2.1"
   }
 }

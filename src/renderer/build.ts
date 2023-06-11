@@ -25,37 +25,33 @@ const buildDir =
   process.env.NODE_ENV === 'development'
     ? '.local-dev-build'
     : 'build'
-
 const headContent = /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
   <link rel="stylesheet" href="styles/reset.css" />
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/footer.css" />
+  <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
+  <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 `
-
-const devJs =
-  process.env.NODE_ENV === 'development'
-    ? `<script>
-      window.addEventListener('visibilitychange', (e) => {
-        window.location.reload();
-      })
-    </script>`
-    : ''
 const header = /* html */ `
   <header class="header">
-    <div class="innerContainer">
+    <div class="innerContainer headerInnerContainer">
       <a href="index.html" class="headerLink">Home</a>
+      <a href="https://github.com/leland-kwong" class="headerLink">
+        <i class="font-icon fa-brands fa-github"></i>
+      </a>
     </div>
   </header>
 `
 const footer = /* html */ `
   <footer class="footer">
     <div class="innerContainer">
-      Deployed via <a href="https://vercel.com/">Vercel</a>
+      Deployed with <a href="https://vercel.com/">Vercel</a>
     </div>
   </footer>
 `
@@ -161,11 +157,9 @@ function renderBlogHome(gitLines: GitLine[]) {
   return [
     headContent,
     '<link rel="stylesheet" href="styles/home.css" />',
-    devJs,
     header,
     `<main>
       <div class="innerContainer">
-        <h1>Home</h1>
         <div class="logList">
           ${logList}
         </div>
@@ -221,7 +215,6 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
             headContent,
             '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
-            devJs,
             header,
             `<main>
               <div class="innerContainer">
@@ -291,6 +284,7 @@ childProcess.exec(
       )
       await writePages(renderedPages)
       await fs.copy('src/styles', `${buildDir}/styles`)
+      await fs.copy('src/assets', `${buildDir}/assets`)
     })
 
     const buildTotalTime =

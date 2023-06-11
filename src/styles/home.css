@@ -1,4 +1,5 @@
 .logList {
+  margin: 1.5rem 0;
   font-family: var(--monospace-font);
   line-height: 1.3;
 }

@@ -8,5 +8,12 @@
 .headerLink {
   font-weight: bold;
   font-family: var(--monospace-font);
+  color: var(--body-text-color);
   text-decoration: none;
+}
+
+.headerInnerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
