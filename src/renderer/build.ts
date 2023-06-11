@@ -148,7 +148,9 @@ function renderBlogHome(gitLines: GitLine[]) {
     `<main>
       <div class="innerContainer">
         <h1>Home</h1>
-        ${logList}
+        <div class="logList">
+          ${logList}
+        </div>
       </div>
      </main>`
   ].join('\n')
