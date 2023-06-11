@@ -6,6 +6,7 @@ import Prism from 'prismjs'
 type GitLine = {
   type: 'commit' | 'file'
   message: string
+  commitHash: string
 }
 
 const buildDir = 'build'
@@ -54,19 +55,43 @@ function slugFromGitLine(gitLine: GitLine) {
   ].join('')
 }
 
-function parseGitLog(log: string): GitLine[] {
+function parseGitLog(log: string) {
   return (
     log
       .split(/\n/g)
       // the last line is empty so we can ignore it
       ?.slice(0, -1)
-      .map((line) => {
-        if (/^\*/.test(line)) {
-          return { type: 'commit', message: line }
-        }
+      .reduce(
+        (acc, line) => {
+          const { commitHash, parsed } = acc
 
-        return { type: 'file', message: line }
-      })
+          if (/^\*/.test(line)) {
+            return {
+              commitHash: line.split(' ')[1],
+              parsed: [
+                ...parsed,
+                {
+                  type: 'commit',
+                  message: line,
+                  commitHash
+                }
+              ] as GitLine[]
+            }
+          }
+
+          return {
+            commitHash,
+            parsed: [
+              ...parsed,
+              { type: 'file', message: line, commitHash }
+            ] as GitLine[]
+          }
+        },
+        { commitHash: '', parsed: [] } as {
+          commitHash: string
+          parsed: GitLine[]
+        }
+      ).parsed
   )
 }
 
@@ -106,6 +131,24 @@ interface Page {
   slug: string
 }
 
+function getGitFileFromHash(
+  commitHash: string,
+  filePath: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    exec(
+      `git show ${commitHash}:${filePath}`,
+      (error, stdout) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve(stdout)
+      }
+    )
+  })
+}
+
 function renderPages(gitLines: GitLine[]): Promise<Page[]> {
   return Promise.all(
     gitLines
@@ -114,6 +157,12 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
         const { message } = line
         const filePath = message.slice(4)
         const slug = slugFromGitLine(line)
+        const gitFile = await getGitFileFromHash(
+          line.commitHash,
+          filePath
+        )
+
+        console.log('gitFile', gitFile)
 
         return {
           html: [
@@ -121,14 +170,10 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
             '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
             devJs,
-            await fs
-              .readFile(filePath, 'utf-8')
-              .then((file) =>
-                marked.parse(file, {
-                  mangle: false,
-                  headerIds: false
-                })
-              )
+            marked.parse(gitFile, {
+              mangle: false,
+              headerIds: false
+            })
           ].join(''),
           slug
         }
