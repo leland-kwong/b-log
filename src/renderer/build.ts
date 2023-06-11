@@ -12,11 +12,19 @@ type GitLine = {
   commitHash: string
 }
 
-const buildDir = 'build'
+const buildDir =
+  process.env.NODE_ENV === 'development'
+    ? '.local-dev-build'
+    : 'build'
 
 const baseStyles = [
+  /* html */ `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">`,
   '<link rel="stylesheet" href="styles/reset.css" />',
-  '<link rel="stylesheet" href="styles/base.css" />'
+  '<link rel="stylesheet" href="styles/base.css" />',
+  '<link rel="stylesheet" href="styles/header.css" />'
 ]
 const devJs =
   process.env.NODE_ENV === 'development'
@@ -26,6 +34,13 @@ const devJs =
       })
     </script>`
     : ''
+const header = /* html */ `
+  <header class="header">
+    <div class="innerContainer">
+      <a href="index.html" class="headerLink">Home</a>
+    </div>
+  </header>
+`
 
 function highlightCode(code: string, lang: string) {
   const langDef = Prism.languages[lang]
@@ -53,6 +68,8 @@ marked.use({
 
 function slugFromGitLine(gitLine: GitLine) {
   return [
+    gitLine.commitHash,
+    '-',
     gitLine.message.split('/').at(-1)?.replace(/.md/, '')!,
     '.html'
   ].join('')
@@ -67,8 +84,9 @@ function parseGitLog(log: string) {
       .reduce(
         (acc, line) => {
           const { commitHash, parsed } = acc
+          const isCommitLine = /^\*/.test(line)
 
-          if (/^\*/.test(line)) {
+          if (isCommitLine) {
             return {
               commitHash: line.split(' ')[1],
               parsed: [
@@ -103,20 +121,21 @@ function renderBlogHome(gitLines: GitLine[]) {
     .map((line) => {
       if (line.type === 'file') {
         const slug = slugFromGitLine(line)
-        return `<div><a href="${slug}">${line.message.replace(
+        const commitMessage = line.message.replace(
           /\s/g,
           '&nbsp;'
-        )}</a></div>`
+        )
+        return `<div><a class="postLink" href="${slug}">${commitMessage}</a></div>`
       }
 
       const [char1, commitHash, ...commitMessage] =
         line.message.split(' ')
       return [
-        '<h2>',
+        '<div>',
         char1,
         `<span class="commitHash">${commitHash}</span>`,
         commitMessage.join(' '),
-        '</h2>'
+        '</div>'
       ].join(' ')
     })
     .join('')
@@ -125,7 +144,15 @@ function renderBlogHome(gitLines: GitLine[]) {
     ...baseStyles,
     '<link rel="stylesheet" href="styles/home.css" />',
     devJs,
-    logList
+    header,
+    `<main>
+      <div class="innerContainer">
+        <h1>Home</h1>
+        <div class="logList">
+          ${logList}
+        </div>
+      </div>
+     </main>`
   ].join('\n')
 }
 
@@ -171,10 +198,15 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
             '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
             devJs,
-            marked.parse(gitFile, {
-              mangle: false,
-              headerIds: false
-            })
+            header,
+            `<main>
+              <div class="innerContainer">
+                ${marked.parse(gitFile, {
+                  mangle: false,
+                  headerIds: false
+                })}
+              </div>
+            </main>`
           ].join(''),
           slug
         }
@@ -203,18 +235,26 @@ exec(
     }
     const parsedLog = parseGitLog(stdout)
     const renderedHomePage = renderBlogHome(parsedLog)
-    try {
-      await fs.emptyDir(buildDir)
-      await fs.writeFile(
-        `${buildDir}/index.html`,
-        renderedHomePage
-      )
-      const renderedPages = await renderPages(parsedLog)
-      await writePages(renderedPages)
-      await fs.copy('src/styles', `${buildDir}/styles`)
-      console.log('html files generated')
-    } catch (err) {
-      console.error(err)
-    }
+
+    console.log('Preparing build...')
+    const buildStartTime = performance.now()
+
+    await fs.emptyDir(buildDir)
+    await fs.writeFile(
+      `${buildDir}/index.html`,
+      renderedHomePage
+    )
+    const renderedPages = await renderPages(parsedLog)
+    await writePages(renderedPages)
+    await fs.copy('src/styles', `${buildDir}/styles`)
+
+    const buildTotalTime =
+      performance.now() - buildStartTime
+    console.log(
+      'Build complete! Took',
+      buildTotalTime,
+      'ms'
+    )
+    console.log('Build output in', buildDir)
   }
 )
