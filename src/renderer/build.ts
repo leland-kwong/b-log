@@ -12,7 +12,10 @@ type GitLine = {
   commitHash: string
 }
 
-const buildDir = 'build'
+const buildDir =
+  process.env.NODE_ENV === 'development'
+    ? '.local-dev-build'
+    : 'build'
 
 const baseStyles = [
   '<link rel="stylesheet" href="styles/reset.css" />',
@@ -226,5 +229,6 @@ exec(
       buildTotalTime,
       'ms'
     )
+    console.log('Build output in', buildDir)
   }
 )
