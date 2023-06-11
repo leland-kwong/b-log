@@ -1,6 +1,7 @@
 import { exec } from 'child_process'
 import fs from 'fs-extra'
 import { marked } from 'marked'
+import Prism from 'prismjs'
 
 type GitLine = {
   type: 'commit' | 'file'
@@ -21,6 +22,30 @@ const devJs =
       })
     </script>`
     : ''
+
+function highlightCode(code: string, lang: string) {
+  const langDef = Prism.languages[lang]
+
+  if (!langDef) {
+    throw new Error(
+      `[prismjs error] language \`${lang}\` not supported. Please add the language in your .babelrc file.`
+    )
+  }
+
+  const highlightedCode = Prism.highlight(
+    code,
+    langDef,
+    lang
+  )
+
+  return `<pre class="language-${lang}"><code class="language-${lang}">${highlightedCode}</code></pre>`
+}
+
+marked.use({
+  renderer: {
+    code: highlightCode
+  }
+})
 
 function slugFromGitLine(gitLine: GitLine) {
   return [
@@ -93,6 +118,7 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
         return {
           html: [
             ...baseStyles,
+            '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
             '<link rel="stylesheet" href="styles/page.css" />',
             devJs,
             await fs
