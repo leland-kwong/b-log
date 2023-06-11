@@ -13,6 +13,7 @@ body {
 
 a {
   color: var(--link-color);
+  padding: 3px 0;
 }
 
 a:hover {
