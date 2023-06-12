@@ -3,6 +3,7 @@ import childProcess from 'node:child_process'
 import * as R from 'ramda'
 
 export type FileData = {
+  // timestamp in milliseconds
   timestamp: number
   commitHash: string
   filePath: string
@@ -47,7 +48,7 @@ export async function fileDataSortedByDate(
         const [timestamp, commitHash] =
           extractWordsBetweenBrackets(stdout)
         const info: FileData = {
-          timestamp: Number(timestamp),
+          timestamp: Number(timestamp) * 1000,
           commitHash,
           filePath
         }

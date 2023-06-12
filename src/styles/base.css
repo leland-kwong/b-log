@@ -9,7 +9,7 @@
 
 body {
   font-family: var(--body-font);
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1.5;
   color: var(--body-text-color);
   display: flex;
@@ -93,6 +93,7 @@ h2 {
 }
 
 main {
+  margin-top: 16px;
   flex-grow: 1;
 }
 
@@ -102,7 +103,7 @@ main {
 
 [class*='image'] {
   display: block;
-  margin: 0 auto;
+  margin: 16px auto;
 }
 
 .imageSmall {
@@ -111,4 +112,10 @@ main {
 
 .imageMedium {
   max-width: 500px;
+}
+
+.postDate {
+  font-size: 0.9rem;
+  font-family: var(--monospace-font);
+  white-space: nowrap;
 }

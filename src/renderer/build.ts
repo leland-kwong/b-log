@@ -1,5 +1,5 @@
+import { DateTime } from 'luxon'
 import util from 'util'
-import childProcess from 'child_process'
 import fs from 'fs-extra'
 import { marked } from 'marked'
 import Prism from 'prismjs'
@@ -25,9 +25,7 @@ const buildDir =
 const headContent = /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;600&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
-  <link rel="stylesheet" href="styles/reset.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles/reset.css" />
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/footer.css" />
@@ -39,13 +37,13 @@ const headContent = /* html */ `
 const header = /* html */ `
   <header class="header">
     <div class="innerContainer headerInnerContainer">
+      <a href="index.html" class="headerLink navLink navLogo">L K</a>
       <div>
-        <a href="index.html" class="headerLink navLink">Home</a>
         <a href="about.html" class="headerLink navLink">About</a>
+        <a href="https://github.com/leland-kwong" class="headerLink">
+          <i class="font-icon fa-brands fa-github"></i>
+        </a>
       </div>
-      <a href="https://github.com/leland-kwong" class="headerLink">
-        <i class="font-icon fa-brands fa-github"></i>
-      </a>
     </div>
   </header>
 `
@@ -56,6 +54,12 @@ const footer = /* html */ `
     </div>
   </footer>
 `
+
+function postDate(timestamp: number) {
+  return DateTime.fromMillis(timestamp).toFormat(
+    'LL/dd/yyyy'
+  )
+}
 
 function highlightCode(code: string, lang: string) {
   const langDef = Prism.languages[lang]
@@ -100,9 +104,13 @@ function renderBlogHome(fileDataSortedByDate: FileData[]) {
         .at(-1)
         ?.replace(/.md/, '')
         .replace(/-/g, ' ')
+      const { timestamp } = fileData
       return `
-        <div>
+        <div class="postItem">
           <a class="postLink" href="${slug}">${titleFromFilePath}</a>
+          <span class="postDate">${postDate(
+            timestamp
+          )}</span>
         </div>
       `
     })
@@ -128,8 +136,11 @@ interface Page {
   slug: string
 }
 
-async function getFile(filePath: string): Promise<string> {
-  const cacheKey = filePath
+async function getFile(
+  filePath: string,
+  modificationDate: number
+): Promise<string> {
+  const cacheKey = `getFile-${filePath}-${modificationDate}`
   const cached = await cacheGet(cacheKey)
 
   if (cached) {
@@ -149,7 +160,11 @@ function renderPages(
   return Promise.all(
     fileDataSortedByDate.map(async (fileData) => {
       const slug = slugFromFileData(fileData)
-      const gitFile = await getFile(fileData.filePath)
+      const gitFile = await getFile(
+        fileData.filePath,
+        fileData.timestamp
+      )
+      const { timestamp } = fileData
 
       return {
         html: [
@@ -159,6 +174,9 @@ function renderPages(
           header,
           `<main>
               <div class="innerContainer">
+                <span class="postDate">${postDate(
+                  timestamp
+                )}</span>
                 ${marked.parse(gitFile, {
                   mangle: false,
                   headerIds: false
