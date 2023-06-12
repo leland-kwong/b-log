@@ -1,7 +1,4 @@
 .postsList {
-  font-size: 1.3rem;
-  font-weight: bold;
-  margin: 1.5rem 0;
   text-transform: capitalize;
 }
 
@@ -9,6 +6,23 @@
   color: var(--secondary-color);
 }
 
+.postItem {
+  margin-bottom: 1rem;
+  line-height: 1.3;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
 .postLink {
   text-decoration: none;
+  font-size: 1.6rem;
+  font-weight: bold;
+  flex-shrink: 0;
+  min-width: 500px;
+  width: 100%;
+  max-width: calc(100% - 200px);
+  padding-top: 0;
+  padding-bottom: 0;
 }

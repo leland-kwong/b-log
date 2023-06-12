@@ -9,6 +9,8 @@
   font-weight: bold;
   color: var(--body-text-color);
   text-decoration: none;
+  display: inline-block;
+  line-height: 2rem;
 }
 
 .headerInnerContainer {
@@ -21,4 +23,12 @@
   margin-right: 16px;
   color: var(--body-text-color);
   text-decoration: none;
+}
+
+.navLogo {
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+  background: var(--body-text-color);
+  padding: 0 8px;
 }
