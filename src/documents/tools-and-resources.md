@@ -38,9 +38,9 @@ This is a curated, ever-growing, always-updated list of tools I've built, develo
 
   When it comes to data visualization, few people are as skilled as Mike. He's one of the original authors of [D3](https://d3js.org/), one of the most popular data vis libraries out there.
 
-- **[Todd Motto](https://toddmotto.com/)**
+- **[Todd Motto](https://ultimatecourses.com/)**
 
-  When it comes to Angular tutorials and knowledge, Todd is your goto guy. He runs workshops, does consulting, and has a blog all dedicated to Angular.
+  When it comes to Angular tutorials and knowledge, Todd is your goto guy. He runs workshops, does consulting, and has a website dedicated to Angular.
 
 - **[Ana Tudor](https://codepen.io/thebabydino/)**
 
