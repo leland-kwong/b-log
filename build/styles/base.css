@@ -9,7 +9,7 @@
 
 body {
   font-family: var(--body-font);
-  font-size: 1rem;
+  font-size: 16px;
   line-height: 1.5;
   color: var(--body-text-color);
   display: flex;

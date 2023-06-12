@@ -16,3 +16,9 @@
   justify-content: space-between;
   align-items: center;
 }
+
+.navLink {
+  margin-right: 16px;
+  color: var(--body-text-color);
+  text-decoration: none;
+}
