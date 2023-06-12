@@ -48,13 +48,17 @@ pre code {
   padding: 0;
 }
 
+ol,
+ul {
+  margin-left: 2em;
+}
+
 ol {
   list-style: decimal;
 }
 
-ol,
 ul {
-  margin-left: 2em;
+  list-style: square;
 }
 
 .innerContainer {
@@ -66,22 +70,26 @@ ul {
 
 h1,
 h2 {
+  --border-width: 5px;
+  --padding: 8px;
   font-weight: bold;
-  display: inline-block;
-  background: var(--secondary-color);
-  color: #fff;
-  box-shadow: 4px 4px 0 #000;
-  padding: 0 0.4em;
+  border-left: var(--border-width) solid
+    var(--secondary-color);
+  padding-left: var(--padding);
+  margin-left: calc(
+    (var(--border-width) + var(--padding)) * -1
+  );
+  line-height: 1.2;
+  margin-top: 24px;
+  margin-bottom: 16px;
 }
 
 h1 {
   font-size: 2em;
-  margin: 0.67em 0;
 }
 
 h2 {
   font-size: 1.5em;
-  margin: 0.83em 0;
 }
 
 main {
@@ -90,4 +98,17 @@ main {
 
 .font-icon {
   font-size: 1.5rem;
+}
+
+[class*='image'] {
+  display: block;
+  margin: 0 auto;
+}
+
+.imageSmall {
+  max-width: 300px;
+}
+
+.imageMedium {
+  max-width: 500px;
 }

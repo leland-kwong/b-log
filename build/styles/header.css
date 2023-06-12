@@ -7,7 +7,6 @@
 
 .headerLink {
   font-weight: bold;
-  font-family: var(--monospace-font);
   color: var(--body-text-color);
   text-decoration: none;
 }

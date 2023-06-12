@@ -6,6 +6,9 @@ import Prism from 'prismjs'
 import loadLanguages from 'prismjs/components/'
 import * as async from 'async'
 
+import { fileDataSortedByDate } from './fileDataSortedByDate'
+import type { FileData } from './fileDataSortedByDate'
+
 import {
   measurePerformance,
   cacheGet,
@@ -14,12 +17,6 @@ import {
 } from './utils'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
-
-type GitLine = {
-  type: 'commit' | 'file'
-  message: string
-  commitHash: string
-}
 
 const buildDir =
   process.env.NODE_ENV === 'development'
@@ -37,11 +34,15 @@ const headContent = /* html */ `
   <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
   <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
 `
 const header = /* html */ `
   <header class="header">
     <div class="innerContainer headerInnerContainer">
-      <a href="index.html" class="headerLink">Home</a>
+      <div>
+        <a href="index.html" class="headerLink navLink">Home</a>
+        <a href="about.html" class="headerLink navLink">About</a>
+      </div>
       <a href="https://github.com/leland-kwong" class="headerLink">
         <i class="font-icon fa-brands fa-github"></i>
       </a>
@@ -80,77 +81,30 @@ marked.use({
   }
 })
 
-function slugFromGitLine(gitLine: GitLine) {
+function slugFromFileData(fileData: FileData): string {
   return [
-    gitLine.commitHash,
-    '-',
-    gitLine.message.split('/').at(-1)?.replace(/.md/, '')!,
+    fileData.filePath
+      .split('/')
+      .at(-1)
+      ?.replace(/.md/, '')!,
     '.html'
   ].join('')
 }
 
-function parseGitLog(log: string) {
-  return (
-    log
-      .split(/\n/g)
-      // the last line is empty so we can ignore it
-      ?.slice(0, -1)
-      .reduce(
-        (acc, line) => {
-          const { commitHash, parsed } = acc
-          const isCommitLine = /^\*/.test(line)
-
-          if (isCommitLine) {
-            return {
-              commitHash: line.split(' ')[1],
-              parsed: [
-                ...parsed,
-                {
-                  type: 'commit',
-                  message: line,
-                  commitHash
-                }
-              ] as GitLine[]
-            }
-          }
-
-          return {
-            commitHash,
-            parsed: [
-              ...parsed,
-              { type: 'file', message: line, commitHash }
-            ] as GitLine[]
-          }
-        },
-        { commitHash: '', parsed: [] } as {
-          commitHash: string
-          parsed: GitLine[]
-        }
-      ).parsed
-  )
-}
-
-function renderBlogHome(gitLines: GitLine[]) {
-  const logList = gitLines
-    .map((line) => {
-      if (line.type === 'file') {
-        const slug = slugFromGitLine(line)
-        const commitMessage = line.message.replace(
-          /\s/g,
-          '&nbsp;'
-        )
-        return `<div><a class="postLink" href="${slug}">${commitMessage}</a></div>`
-      }
-
-      const [char1, commitHash, ...commitMessage] =
-        line.message.split(' ')
-      return [
-        '<div>',
-        char1,
-        `<span class="commitHash">${commitHash}</span>`,
-        commitMessage.join(' '),
-        '</div>'
-      ].join(' ')
+function renderBlogHome(fileDataSortedByDate: FileData[]) {
+  const postsList = fileDataSortedByDate
+    .map((fileData) => {
+      const slug = slugFromFileData(fileData)
+      const titleFromFilePath = fileData.filePath
+        .split('/')
+        .at(-1)
+        ?.replace(/.md/, '')
+        .replace(/-/g, ' ')
+      return `
+        <div>
+          <a class="postLink" href="${slug}">${titleFromFilePath}</a>
+        </div>
+      `
     })
     .join('')
 
@@ -160,8 +114,8 @@ function renderBlogHome(gitLines: GitLine[]) {
     header,
     `<main>
       <div class="innerContainer">
-        <div class="logList">
-          ${logList}
+        <div class="postsList">
+          ${postsList}
         </div>
       </div>
      </main>`,
@@ -174,49 +128,36 @@ interface Page {
   slug: string
 }
 
-async function getGitFileFromHash(
-  commitHash: string,
-  filePath: string
-): Promise<string> {
-  const cacheKey = `${commitHash}:${filePath}`
+async function getFile(filePath: string): Promise<string> {
+  const cacheKey = filePath
   const cached = await cacheGet(cacheKey)
 
   if (cached) {
     return cached
   }
 
-  const exec = util.promisify(childProcess.exec)
-  const { stderr, stdout } = await exec(
-    `git show ${cacheKey}`
-  )
+  const readFile = util.promisify(fs.readFile)
+  const file = await readFile(filePath, 'utf8')
 
-  if (stderr) {
-    return stderr
-  }
-  cacheSet(cacheKey, stdout)
-  return stdout
+  cacheSet(cacheKey, file)
+  return file
 }
 
-function renderPages(gitLines: GitLine[]): Promise<Page[]> {
+function renderPages(
+  fileDataSortedByDate: FileData[]
+): Promise<Page[]> {
   return Promise.all(
-    gitLines
-      .filter((line) => line.type === 'file')
-      .map(async (line) => {
-        const { message } = line
-        const filePath = message.slice(4)
-        const slug = slugFromGitLine(line)
-        const gitFile = await getGitFileFromHash(
-          line.commitHash,
-          filePath
-        )
+    fileDataSortedByDate.map(async (fileData) => {
+      const slug = slugFromFileData(fileData)
+      const gitFile = await getFile(fileData.filePath)
 
-        return {
-          html: [
-            headContent,
-            '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
-            '<link rel="stylesheet" href="styles/page.css" />',
-            header,
-            `<main>
+      return {
+        html: [
+          headContent,
+          '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
+          '<link rel="stylesheet" href="styles/page.css" />',
+          header,
+          `<main>
               <div class="innerContainer">
                 ${marked.parse(gitFile, {
                   mangle: false,
@@ -224,11 +165,11 @@ function renderPages(gitLines: GitLine[]): Promise<Page[]> {
                 })}
               </div>
             </main>`,
-            footer
-          ].join(''),
-          slug
-        }
-      })
+          footer
+        ].join(''),
+        slug
+      }
+    })
   )
 }
 
@@ -253,40 +194,33 @@ function writePages(pages: Page[]): Promise<void> {
   })
 }
 
+async function build() {
+  const fileDataList = await measurePerformance(
+    'Get file data',
+    fileDataSortedByDate
+  )
+  const renderedHomePage = renderBlogHome(fileDataList)
+  const renderedPages = await measurePerformance(
+    'Render pages',
+    () => renderPages(fileDataList)
+  )
+  await measurePerformance('Write pages', async () => {
+    await fs.emptyDir(buildDir)
+    await fs.writeFile(
+      `${buildDir}/index.html`,
+      renderedHomePage
+    )
+    await writePages(renderedPages)
+    await fs.copy('src/styles', `${buildDir}/styles`)
+    await fs.copy('src/assets', `${buildDir}/assets`)
+  })
+}
+
 console.log('Preparing build...')
 const buildStartTime = performance.now()
 
-childProcess.exec(
-  'git log --graph --oneline --name-status --diff-filter=AM -- "src/documents/"',
-  async (error, stdout, stderr) => {
-    if (error) {
-      console.log(`error: ${error.message}`)
-      await cacheClose()
-      return
-    }
-    if (stderr) {
-      console.log(`stderr: ${stderr}`)
-      await cacheClose()
-      return
-    }
-    const parsedLog = parseGitLog(stdout)
-    const renderedHomePage = renderBlogHome(parsedLog)
-
-    const renderedPages = await measurePerformance(
-      'Render pages',
-      () => renderPages(parsedLog)
-    )
-    await measurePerformance('Write pages', async () => {
-      await fs.emptyDir(buildDir)
-      await fs.writeFile(
-        `${buildDir}/index.html`,
-        renderedHomePage
-      )
-      await writePages(renderedPages)
-      await fs.copy('src/styles', `${buildDir}/styles`)
-      await fs.copy('src/assets', `${buildDir}/assets`)
-    })
-
+build()
+  .then(async () => {
     const buildTotalTime =
       performance.now() - buildStartTime
     console.log(
@@ -295,6 +229,12 @@ childProcess.exec(
       'ms'
     )
     console.log('Build output in', buildDir)
+
     await cacheClose()
-  }
-)
+  })
+  .catch(async (err) => {
+    console.error(err)
+
+    await cacheClose()
+    process.exit(1)
+  })

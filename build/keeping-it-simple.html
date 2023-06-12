@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
   <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
 <link rel="stylesheet" href="styles/prism-theme.min.css" /><link rel="stylesheet" href="styles/page.css" />
   <header class="header">
     <div class="innerContainer headerInnerContainer">
@@ -26,7 +27,7 @@
 <h2>Build Process</h2>
 <p>The build process is actually quite simple:</p>
 <ol>
-<li>Get the entire git commit tree:<pre class="language-bash"><code class="language-bash"><span class="token function">git</span> log <span class="token parameter variable">--graph</span> <span class="token parameter variable">--oneline</span> --name-status --diff-filter<span class="token operator">=</span>AM -- <span class="token string">"src/documents/"</span></code></pre></li>
+<li>Get the git commit log filtering for just the commits that contained document changes:<pre class="language-bash"><code class="language-bash"><span class="token function">git</span> log <span class="token parameter variable">--graph</span> <span class="token parameter variable">--oneline</span> --name-status --diff-filter<span class="token operator">=</span>AM -- <span class="token string">"src/documents/"</span></code></pre></li>
 <li>Process each line to extract the commit hash and file path.</li>
 <li>Render individual pages based on the file path of each modified file.</li>
 <li>Write each page to a <code>build</code> folder.</li>
