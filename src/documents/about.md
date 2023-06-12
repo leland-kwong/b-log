@@ -1,1 +1,1 @@
-<img class="Sirv" data-src="https://vicenbis.sirv.com/Images/VW%20Beetle.jpg" alt="">
+<img class="Sirv" data-src="https://vicenbis.sirv.com/Images/lelandkwong.com/IMG_1779.jpeg" alt="">
