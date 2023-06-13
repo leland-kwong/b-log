@@ -146,24 +146,34 @@ async function getFile(filePath: string): Promise<string> {
 }
 
 async function getDrafts(): Promise<FileData[]> {
-  const { stderr, stdout } = await util.promisify(
-    childProcess.exec
-  )('git status --porcelain -- src/documents | grep -wv D')
-  if (stderr) {
-    console.error(stderr)
-    return []
-  }
-  const fileList = stdout
-    .split('\n')
-    .filter(Boolean)
-    // get just the file path ignoring the modification status
-    .map((line) => line.slice(3))
+  const getListOfDocumentsInRepo =
+    'git status --porcelain -- src/documents | grep -wv D'
+  try {
+    const { stderr, stdout } = await util.promisify(
+      childProcess.exec
+    )(getListOfDocumentsInRepo)
+    if (stderr) {
+      throw new Error(stderr)
+    }
+    const fileList = stdout
+      .split('\n')
+      .filter(Boolean)
+      // get just the file path ignoring the modification status
+      .map((line) => line.slice(3))
 
-  return fileList.map((filePath) => ({
-    filePath,
-    timestamp: DateTime.utc().toMillis(),
-    draft: true
-  }))
+    return fileList.map((filePath) => ({
+      filePath,
+      timestamp: DateTime.utc().toMillis(),
+      draft: true
+    }))
+  } catch (error: any) {
+    const noLines =
+      (error as childProcess.ExecException).code === 1
+    if (noLines) {
+      return []
+    }
+    throw error
+  }
 }
 
 function renderPages(
