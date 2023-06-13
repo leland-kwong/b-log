@@ -5,12 +5,16 @@
   background: var(--main-background-color);
 }
 
+.headerRightColumn {
+  display: flex;
+  align-items: center;
+}
+
 .headerLink {
   font-weight: bold;
   color: var(--body-text-color);
   text-decoration: none;
   display: inline-block;
-  line-height: 2rem;
 }
 
 .headerInnerContainer {
@@ -30,5 +34,5 @@
   color: #fff;
   text-decoration: none;
   background: var(--body-text-color);
-  padding: 0 8px;
+  padding: 4px 8px;
 }

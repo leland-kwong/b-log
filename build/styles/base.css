@@ -5,13 +5,14 @@
   --body-font: 'Geologica', sans-serif;
   --body-text-color: #000;
   --main-background-color: #fff;
+
+  font-family: var(--body-font);
+  font-size: 16px;
+  color: var(--body-text-color);
 }
 
 body {
-  font-family: var(--body-font);
-  font-size: 18px;
   line-height: 1.5;
-  color: var(--body-text-color);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -61,6 +62,10 @@ ul {
   list-style: square;
 }
 
+li {
+  margin-bottom: 0.5em;
+}
+
 .innerContainer {
   margin: 0 auto;
   padding: 16px 0;
@@ -76,9 +81,6 @@ h2 {
   border-left: var(--border-width) solid
     var(--secondary-color);
   padding-left: var(--padding);
-  margin-left: calc(
-    (var(--border-width) + var(--padding)) * -1
-  );
   line-height: 1.2;
   margin-top: 24px;
   margin-bottom: 16px;
@@ -93,12 +95,22 @@ h2 {
 }
 
 main {
-  margin-top: 16px;
+  margin-top: 1rem;
+  margin-bottom: 5rem;
   flex-grow: 1;
+}
+
+strong,
+em {
+  font-weight: bold;
 }
 
 .font-icon {
   font-size: 1.5rem;
+}
+
+.fontSmall {
+  font-size: 0.8rem;
 }
 
 [class*='image'] {
