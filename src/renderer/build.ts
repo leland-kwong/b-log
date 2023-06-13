@@ -1,3 +1,4 @@
+import childProcess from 'node:child_process'
 import { DateTime } from 'luxon'
 import util from 'util'
 import fs from 'fs-extra'
@@ -9,12 +10,7 @@ import * as async from 'async'
 import { fileDataSortedByDate } from './fileDataSortedByDate'
 import type { FileData } from './fileDataSortedByDate'
 
-import {
-  measurePerformance,
-  cacheGet,
-  cacheSet,
-  cacheClose
-} from './utils'
+import { measurePerformance } from './utils'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
@@ -86,13 +82,19 @@ marked.use({
 })
 
 function slugFromFileData(fileData: FileData): string {
-  return [
+  const slug = [
     fileData.filePath
       .split('/')
       .at(-1)
       ?.replace(/.md/, '')!,
     '.html'
   ].join('')
+
+  if (fileData.draft) {
+    return `DRAFT--${slug}`
+  }
+
+  return slug
 }
 
 function renderBlogHome(fileDataSortedByDate: FileData[]) {
@@ -136,22 +138,32 @@ interface Page {
   slug: string
 }
 
-async function getFile(
-  filePath: string,
-  modificationDate: number
-): Promise<string> {
-  const cacheKey = `getFile-${filePath}-${modificationDate}`
-  const cached = await cacheGet(cacheKey)
-
-  if (cached) {
-    return cached
-  }
-
+async function getFile(filePath: string): Promise<string> {
   const readFile = util.promisify(fs.readFile)
   const file = await readFile(filePath, 'utf8')
 
-  cacheSet(cacheKey, file)
   return file
+}
+
+async function getDrafts(): Promise<FileData[]> {
+  const { stderr, stdout } = await util.promisify(
+    childProcess.exec
+  )('git status --porcelain -- src/documents | grep -wv D')
+  if (stderr) {
+    console.error(stderr)
+    return []
+  }
+  const fileList = stdout
+    .split('\n')
+    .filter(Boolean)
+    // get just the file path ignoring the modification status
+    .map((line) => line.slice(3))
+
+  return fileList.map((filePath) => ({
+    filePath,
+    timestamp: DateTime.utc().toMillis(),
+    draft: true
+  }))
 }
 
 function renderPages(
@@ -160,10 +172,7 @@ function renderPages(
   return Promise.all(
     fileDataSortedByDate.map(async (fileData) => {
       const slug = slugFromFileData(fileData)
-      const gitFile = await getFile(
-        fileData.filePath,
-        fileData.timestamp
-      )
+      const gitFile = await getFile(fileData.filePath)
       const { timestamp } = fileData
 
       return {
@@ -213,10 +222,17 @@ function writePages(pages: Page[]): Promise<void> {
 }
 
 async function build() {
-  const fileDataList = await measurePerformance(
-    'Get file data',
-    fileDataSortedByDate
-  )
+  const drafts =
+    process.env.NODE_ENV === 'development'
+      ? await getDrafts()
+      : []
+  const fileDataList = [
+    ...drafts,
+    ...(await measurePerformance(
+      'Get file data',
+      fileDataSortedByDate
+    ))
+  ]
   const renderedHomePage = renderBlogHome(fileDataList)
   const renderedPages = await measurePerformance(
     'Render pages',
@@ -247,12 +263,9 @@ build()
       'ms'
     )
     console.log('Build output in', buildDir)
-
-    await cacheClose()
   })
   .catch(async (err) => {
     console.error(err)
 
-    await cacheClose()
     process.exit(1)
   })

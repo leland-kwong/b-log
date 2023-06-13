@@ -1,12 +1,13 @@
 import util from 'node:util'
 import childProcess from 'node:child_process'
+import fs from 'node:fs'
 import * as R from 'ramda'
 
 export type FileData = {
   // timestamp in milliseconds
   timestamp: number
-  commitHash: string
   filePath: string
+  draft?: boolean
 }
 
 const exec = util.promisify(childProcess.exec)
@@ -22,6 +23,7 @@ function extractWordsBetweenBrackets(text: string) {
 export async function fileDataSortedByDate(
   workingDir = '.'
 ) {
+  const fsExists = util.promisify(fs.exists)
   const gitListFilesCmd = [
     `cd ${workingDir}`,
     ' && ',
@@ -32,28 +34,33 @@ export async function fileDataSortedByDate(
 
   return R.sort(
     R.descend(R.prop('timestamp')),
-    await Promise.all(
-      filesArray.map(async (filePath) => {
-        const gitGetFileInfoCmd = [
-          `cd ${workingDir}`,
-          ' && ',
-          `git log --format=[%ct][%h] -n1 ${filePath}`
-        ].join('')
-        const { stderr, stdout } = await exec(
-          gitGetFileInfoCmd
+    await filesArray.reduce(async (results, filePath) => {
+      if (!(await fsExists(filePath))) {
+        console.log(
+          'file does not exist',
+          filePath,
+          'skipping'
         )
-        if (stderr) {
-          console.error(stderr)
-        }
-        const [timestamp, commitHash] =
-          extractWordsBetweenBrackets(stdout)
-        const info: FileData = {
-          timestamp: Number(timestamp) * 1000,
-          commitHash,
-          filePath
-        }
-        return info
-      })
-    )
+        return results
+      }
+      const gitGetFileInfoCmd = [
+        `cd ${workingDir}`,
+        ' && ',
+        `git log --format=[%ct][%h] -n1 ${filePath}`
+      ].join('')
+      const { stderr, stdout } = await exec(
+        gitGetFileInfoCmd
+      )
+      if (stderr) {
+        console.error(stderr)
+      }
+      const [timestamp] =
+        extractWordsBetweenBrackets(stdout)
+      const info: FileData = {
+        timestamp: Number(timestamp) * 1000,
+        filePath
+      }
+      return [...(await results), info]
+    }, Promise.resolve([] as FileData[]))
   )
 }
