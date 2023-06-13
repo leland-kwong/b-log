@@ -1,6 +1,6 @@
 export async function measurePerformance<T>(
   label: string,
-  fn: () => Promise<T>
+  fn: () => T
 ) {
   const start = performance.now()
   const fnResult = await fn()

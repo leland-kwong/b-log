@@ -13,6 +13,10 @@ import { fileDataSortedByDate } from './fileDataSortedByDate'
 import type { FileData } from './fileDataSortedByDate'
 import { measurePerformance } from './utils'
 
+type CompleteDocument = FileData & {
+  markdownBody: string
+}
+
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
 const siteConfig = {
@@ -128,17 +132,20 @@ function draftClassFromFileData(
   return ''
 }
 
-function renderBlogHome(fileDataSortedByDate: FileData[]) {
+function renderBlogHome(
+  fileDataSortedByDate: CompleteDocument[]
+) {
   const postsList = fileDataSortedByDate
-    .map((fileData) => {
-      const slug = slugFromFileData(fileData)
-      const draftClass = draftClassFromFileData(fileData)
-      const titleFromFilePath = fileData.filePath
+    .map((parsedDocument) => {
+      const slug = slugFromFileData(parsedDocument)
+      const draftClass =
+        draftClassFromFileData(parsedDocument)
+      const titleFromFilePath = parsedDocument.filePath
         .split('/')
         .at(-1)
         ?.replace(/.md/, '')
         .replace(/-/g, ' ')
-      const { timestamp } = fileData
+      const { timestamp } = parsedDocument
       return `
         <div class="postItem">
           <a class="postLink ${draftClass}" href="${slug}">${titleFromFilePath}</a>
@@ -170,7 +177,7 @@ interface Page {
   slug: string
 }
 
-async function getFile(filePath: string): Promise<string> {
+async function readFile(filePath: string): Promise<string> {
   const readFile = util.promisify(fs.readFile)
   const file = await readFile(filePath, 'utf8')
 
@@ -210,37 +217,37 @@ async function getUncommittedFiles(): Promise<FileData[]> {
 }
 
 function renderPages(
-  fileDataSortedByDate: FileData[]
-): Promise<Page[]> {
-  return Promise.all(
-    fileDataSortedByDate.map(async (fileData) => {
-      const slug = slugFromFileData(fileData)
-      const gitFile = await getFile(fileData.filePath)
-      const draftClass = draftClassFromFileData(fileData)
-      const { timestamp } = fileData
+  parsedDocumentList: CompleteDocument[]
+): Page[] {
+  return parsedDocumentList.map((parsedDocument) => {
+    const { markdownBody } = parsedDocument
+    const slug = slugFromFileData(parsedDocument)
+    const draftClass =
+      draftClassFromFileData(parsedDocument)
+    const { timestamp } = parsedDocument
+    const htmlFromMarkdown = marked.parse(markdownBody, {
+      mangle: false,
+      headerIds: false
+    })
 
-      return {
-        html: [
-          headContent,
-          '<link rel="stylesheet" href="styles/page.css" />',
-          header,
-          `<main>
+    return {
+      html: [
+        headContent,
+        '<link rel="stylesheet" href="styles/page.css" />',
+        header,
+        `<main>
               <div class="innerContainer">
                 <span class="postDate ${draftClass}">${postDate(
-            timestamp
-          )}</span>
-                ${marked.parse(gitFile, {
-                  mangle: false,
-                  headerIds: false
-                })}
+          timestamp
+        )}</span>
+                ${htmlFromMarkdown}
               </div>
             </main>`,
-          footer
-        ].join(''),
-        slug
-      }
-    })
-  )
+        footer
+      ].join(''),
+      slug
+    }
+  })
 }
 
 async function writeHomePage(
@@ -276,17 +283,20 @@ function writePages(
 
 async function build({
   buildDir,
-  fileDataList
+  parsedDocumentList
 }: {
   buildDir: string
-  fileDataList: FileData[]
+  parsedDocumentList: CompleteDocument[]
 }) {
   const buildStartTime = performance.now()
 
-  const renderedHomePage = renderBlogHome(fileDataList)
+  const renderedHomePage = await measurePerformance(
+    'Render homepage',
+    () => renderBlogHome(parsedDocumentList)
+  )
   const renderedPages = await measurePerformance(
     'Render pages',
-    () => renderPages(fileDataList)
+    () => renderPages(parsedDocumentList)
   )
   await measurePerformance('Prepare dirs', async () => {
     await fs.ensureDir(buildDir)
@@ -316,21 +326,36 @@ chokidar.watch(siteConfig.documentsDir, {}).on(
       'Get file data',
       fileDataSortedByDate
     )
+    const parsedCommitedFiles: CompleteDocument[] =
+      await Promise.all(
+        commitedFiles.map(async (fileData) => ({
+          ...fileData,
+          markdownBody: await readFile(fileData.filePath)
+        }))
+      )
 
     if (process.env.NODE_ENV === 'development') {
       const uncommittedFiles = await getUncommittedFiles()
+      const parsedUncommittedFiles: CompleteDocument[] =
+        await Promise.all(
+          uncommittedFiles.map(async (fileData) => ({
+            ...fileData,
+            markdownBody: await readFile(fileData.filePath)
+          }))
+        )
+
       await build({
         buildDir: '.local-dev-build',
-        fileDataList: [
-          ...uncommittedFiles,
-          ...commitedFiles
+        parsedDocumentList: [
+          ...parsedUncommittedFiles,
+          ...parsedCommitedFiles
         ]
       })
     }
 
     await build({
       buildDir: siteConfig.buildDir,
-      fileDataList: commitedFiles
+      parsedDocumentList: parsedCommitedFiles
     })
     console.log(
       'Total build time:',
