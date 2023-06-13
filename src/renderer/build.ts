@@ -29,11 +29,11 @@ const headContent = /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles/reset.css" />
+  <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
+  <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/footer.css" />
-  <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
-  <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
 `
@@ -95,7 +95,14 @@ function highlightCode(code: string, lang: string) {
 
 marked.use({
   renderer: {
-    code: highlightCode
+    code: highlightCode,
+    heading(text, level) {
+      return `
+        <h${level}
+          class="mdHeader mdHeader${level}"
+        >${text}
+        </h${level}>`.trim()
+    }
   }
 })
 
@@ -206,7 +213,7 @@ function renderPages(
       return {
         html: [
           headContent,
-          '<link rel="stylesheet" href="styles/prism-theme.min.css" />',
+          '<link rel="stylesheet" href="styles/prism-theme.css" />',
           '<link rel="stylesheet" href="styles/page.css" />',
           header,
           `<main>

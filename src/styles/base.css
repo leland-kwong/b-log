@@ -47,6 +47,7 @@ code {
 
 pre code {
   padding: 0;
+  background: none;
 }
 
 ol,
@@ -73,8 +74,7 @@ li {
   max-width: 800px;
 }
 
-h1,
-h2 {
+.mdHeader {
   --border-width: 5px;
   --padding: 8px;
   font-weight: bold;
@@ -84,6 +84,10 @@ h2 {
   line-height: 1.2;
   margin-top: 24px;
   margin-bottom: 16px;
+}
+
+.mdHeader1:first-of-type {
+  margin-top: 0;
 }
 
 h1 {
