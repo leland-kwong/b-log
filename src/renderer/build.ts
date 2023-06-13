@@ -1,3 +1,5 @@
+import debounce from 'debounce'
+import chokidar from 'chokidar'
 import childProcess from 'node:child_process'
 import { DateTime } from 'luxon'
 import util from 'util'
@@ -9,7 +11,6 @@ import * as async from 'async'
 
 import { fileDataSortedByDate } from './fileDataSortedByDate'
 import type { FileData } from './fileDataSortedByDate'
-
 import { measurePerformance } from './utils'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
@@ -18,19 +19,15 @@ const siteConfig = {
   dayJobCompany: {
     name: 'Palo Alto Networks',
     url: 'https://www.paloaltonetworks.com/'
-  }
-}
+  },
+  documentsDir: 'src/documents',
+  buildDir: 'build'
+} as const
 
-const buildDir =
-  process.env.NODE_ENV === 'development'
-    ? '.local-dev-build'
-    : 'build'
 const headContent = /* html */ `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles/reset.css" />
-  <link rel="stylesheet" href="assets/fontawesome/css/brands.min.css" />
-  <link rel="stylesheet" href="assets/fontawesome/css/fontawesome.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/footer.css" />
@@ -122,10 +119,20 @@ function slugFromFileData(fileData: FileData): string {
   return slug
 }
 
+function draftClassFromFileData(
+  fileData: FileData
+): string {
+  if (fileData.draft) {
+    return 'isDraft'
+  }
+  return ''
+}
+
 function renderBlogHome(fileDataSortedByDate: FileData[]) {
   const postsList = fileDataSortedByDate
     .map((fileData) => {
       const slug = slugFromFileData(fileData)
+      const draftClass = draftClassFromFileData(fileData)
       const titleFromFilePath = fileData.filePath
         .split('/')
         .at(-1)
@@ -134,7 +141,7 @@ function renderBlogHome(fileDataSortedByDate: FileData[]) {
       const { timestamp } = fileData
       return `
         <div class="postItem">
-          <a class="postLink" href="${slug}">${titleFromFilePath}</a>
+          <a class="postLink ${draftClass}" href="${slug}">${titleFromFilePath}</a>
           <span class="postDate">${postDate(
             timestamp
           )}</span>
@@ -170,6 +177,7 @@ async function getFile(filePath: string): Promise<string> {
   return file
 }
 
+// gets document data for unstaged files
 async function getDrafts(): Promise<FileData[]> {
   const getListOfDocumentsInRepo =
     'git status --porcelain -- src/documents | grep -wv D'
@@ -183,7 +191,7 @@ async function getDrafts(): Promise<FileData[]> {
     const fileList = stdout
       .split('\n')
       .filter(Boolean)
-      // get just the file path ignoring the modification status
+      // get just the file path excluding the modification status
       .map((line) => line.slice(3))
 
     return fileList.map((filePath) => ({
@@ -208,19 +216,19 @@ function renderPages(
     fileDataSortedByDate.map(async (fileData) => {
       const slug = slugFromFileData(fileData)
       const gitFile = await getFile(fileData.filePath)
+      const draftClass = draftClassFromFileData(fileData)
       const { timestamp } = fileData
 
       return {
         html: [
           headContent,
-          '<link rel="stylesheet" href="styles/prism-theme.css" />',
           '<link rel="stylesheet" href="styles/page.css" />',
           header,
           `<main>
               <div class="innerContainer">
-                <span class="postDate">${postDate(
-                  timestamp
-                )}</span>
+                <span class="postDate ${draftClass}">${postDate(
+            timestamp
+          )}</span>
                 ${marked.parse(gitFile, {
                   mangle: false,
                   headerIds: false
@@ -235,7 +243,17 @@ function renderPages(
   )
 }
 
-function writePages(pages: Page[]): Promise<void> {
+async function writeHomePage(
+  content: string,
+  buildDir: string
+) {
+  await fs.writeFile(`${buildDir}/index.html`, content)
+}
+
+function writePages(
+  pages: Page[],
+  buildDir: string
+): Promise<void> {
   return new Promise((resolve, reject) => {
     async.eachSeries(
       pages,
@@ -256,51 +274,59 @@ function writePages(pages: Page[]): Promise<void> {
   })
 }
 
-async function build() {
-  const drafts =
-    process.env.NODE_ENV === 'development'
-      ? await getDrafts()
-      : []
-  const fileDataList = [
-    ...drafts,
-    ...(await measurePerformance(
-      'Get file data',
-      fileDataSortedByDate
-    ))
-  ]
+async function build({
+  buildDir,
+  fileDataList
+}: {
+  buildDir: string
+  fileDataList: FileData[]
+}) {
+  const buildStartTime = performance.now()
+
   const renderedHomePage = renderBlogHome(fileDataList)
   const renderedPages = await measurePerformance(
     'Render pages',
     () => renderPages(fileDataList)
   )
-  await measurePerformance('Write pages', async () => {
+  await measurePerformance('Prepare dirs', async () => {
+    await fs.ensureDir(buildDir)
     await fs.emptyDir(buildDir)
-    await fs.writeFile(
-      `${buildDir}/index.html`,
-      renderedHomePage
-    )
-    await writePages(renderedPages)
+  })
+  await measurePerformance('Write pages', async () => {
+    await writeHomePage(renderedHomePage, buildDir)
+    await writePages(renderedPages, buildDir)
+  })
+  await measurePerformance('Copy assets', async () => {
     await fs.copy('src/styles', `${buildDir}/styles`)
     await fs.copy('src/assets', `${buildDir}/assets`)
   })
+
+  const buildTotalTime = performance.now() - buildStartTime
+  console.log('Build complete! Took', buildTotalTime, 'ms')
+  console.log('Build output to:', buildDir)
 }
 
-console.log('Preparing build...')
-const buildStartTime = performance.now()
-
-build()
-  .then(async () => {
-    const buildTotalTime =
-      performance.now() - buildStartTime
-    console.log(
-      'Build complete! Took',
-      buildTotalTime,
-      'ms'
+console.log('Watching documents for changes...')
+chokidar.watch(siteConfig.documentsDir, {}).on(
+  'all',
+  debounce(async () => {
+    console.log('Changes detected, rebuilding...')
+    const publishedFiles = await measurePerformance(
+      'Get file data',
+      fileDataSortedByDate
     )
-    console.log('Build output in', buildDir)
-  })
-  .catch(async (err) => {
-    console.error(err)
 
-    process.exit(1)
-  })
+    if (process.env.NODE_ENV === 'development') {
+      const drafts = await getDrafts()
+      await build({
+        buildDir: '.local-dev-build',
+        fileDataList: [...drafts, ...publishedFiles]
+      })
+    }
+
+    await build({
+      buildDir: siteConfig.buildDir,
+      fileDataList: publishedFiles
+    })
+  }, 100)
+)

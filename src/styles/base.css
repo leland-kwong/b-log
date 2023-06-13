@@ -1,3 +1,7 @@
+@import url('reset.css');
+@import url('../assets/fontawesome/css/brands.min.css');
+@import url('../assets/fontawesome/css/fontawesome.min.css');
+
 :root {
   --link-color: #1076d9;
   --secondary-color: #ae3535;
@@ -134,4 +138,18 @@ em {
   font-size: 0.9rem;
   font-family: var(--monospace-font);
   white-space: nowrap;
+}
+
+.isDraft:after {
+  --color: orange;
+  content: 'draft';
+  text-transform: uppercase;
+  padding: 0.2rem 0.4rem;
+  font-size: 0.7rem;
+  background: var(--color);
+  font-weight: normal;
+  color: var(--body-text-color);
+  margin-left: 0.5rem;
+  display: inline-block;
+  line-height: 1.2;
 }
