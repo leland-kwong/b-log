@@ -178,7 +178,7 @@ async function getFile(filePath: string): Promise<string> {
 }
 
 // gets document data for unstaged files
-async function getDrafts(): Promise<FileData[]> {
+async function getUncommittedFiles(): Promise<FileData[]> {
   const getListOfDocumentsInRepo =
     'git status --porcelain -- src/documents | grep -wv D'
   try {
@@ -312,22 +312,25 @@ chokidar.watch(siteConfig.documentsDir, {}).on(
   debounce(async () => {
     console.log('Changes detected, rebuilding...')
     const totalBuildTimeStart = performance.now()
-    const publishedFiles = await measurePerformance(
+    const commitedFiles = await measurePerformance(
       'Get file data',
       fileDataSortedByDate
     )
 
     if (process.env.NODE_ENV === 'development') {
-      const drafts = await getDrafts()
+      const uncommittedFiles = await getUncommittedFiles()
       await build({
         buildDir: '.local-dev-build',
-        fileDataList: [...drafts, ...publishedFiles]
+        fileDataList: [
+          ...uncommittedFiles,
+          ...commitedFiles
+        ]
       })
     }
 
     await build({
       buildDir: siteConfig.buildDir,
-      fileDataList: publishedFiles
+      fileDataList: commitedFiles
     })
     console.log(
       'Total build time:',
