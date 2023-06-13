@@ -95,7 +95,8 @@ h2 {
 }
 
 main {
-  margin-top: 16px;
+  margin-top: 1rem;
+  margin-bottom: 5rem;
   flex-grow: 1;
 }
 
@@ -106,6 +107,10 @@ em {
 
 .font-icon {
   font-size: 1.5rem;
+}
+
+.fontSmall {
+  font-size: 0.8rem;
 }
 
 [class*='image'] {

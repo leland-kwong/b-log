@@ -14,6 +14,13 @@ import { measurePerformance } from './utils'
 
 loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
 
+const siteConfig = {
+  dayJobCompany: {
+    name: 'Palo Alto Networks',
+    url: 'https://www.paloaltonetworks.com/'
+  }
+}
+
 const buildDir =
   process.env.NODE_ENV === 'development'
     ? '.local-dev-build'
@@ -34,8 +41,7 @@ const header = /* html */ `
   <header class="header">
     <div class="innerContainer headerInnerContainer">
       <a href="index.html" class="headerLink navLink navLogo">L K</a>
-      <div>
-        <a href="about.html" class="headerLink navLink">About</a>
+      <div class="headerRightColumn">
         <a href="https://github.com/leland-kwong" class="headerLink">
           <i class="font-icon fa-brands fa-github"></i>
         </a>
@@ -46,7 +52,19 @@ const header = /* html */ `
 const footer = /* html */ `
   <footer class="footer">
     <div class="innerContainer">
-      Deployed with <a href="https://vercel.com/">Vercel</a>
+      <div class="aboutMe footerSection">
+        <div class="aboutMeImage">
+          <img class="Sirv" data-src="https://vicenbis.sirv.com/Images/lelandkwong.com/IMG_1387.jpeg" alt="">
+        </div>
+        <div class="aboutMeText">
+          <div class="aboutMeHello">Hello! My name is Leland Kwong. I work at <a href="${siteConfig.dayJobCompany.url}">${siteConfig.dayJobCompany.name}</a> as a software engineer.</div>
+          <p>I believe the best digital products involve a great user experience, tasteful design, and high-quality code.</p>
+        </div>
+      </div>
+      <div class="footerSection">
+        <div class="fontSmall">This site was deployed with <a href="https://vercel.com/">Vercel</a> and statically generated with a homebrew system.</div>
+        </div>
+      </div>
     </div>
   </footer>
 `

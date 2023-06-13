@@ -1,4 +1,31 @@
 .footer {
-  margin-top: 3rem;
-  background: #f0f0f0;
+  background: #f6f6f6;
+  padding: 3rem 0;
+}
+
+.footerSection:not(:last-child) {
+  margin: 0 0 2rem;
+}
+
+.aboutMe {
+  display: flex;
+}
+
+.aboutMeImage {
+  width: 150px;
+  margin: 0;
+}
+
+.aboutMeImage img {
+  margin: 0;
+}
+
+.aboutMeText {
+  margin-left: 1rem;
+}
+
+.aboutMeHello {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 0.8em;
 }
