@@ -334,5 +334,10 @@ chokidar.watch(siteConfig.documentsDir, {}).on(
       performance.now() - totalBuildTimeStart,
       'ms'
     )
+
+    // only watch for changes in dev mode
+    if (process.env.NODE_ENV !== 'development') {
+      process.exit(0)
+    }
   }, 100)
 )
