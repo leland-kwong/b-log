@@ -23,20 +23,27 @@
                 <span class="postDate ">06/13/2023</span>
                 <h1
           class="mdHeader mdHeader1"
-        >Keeping it Simple
-        </h1><p>This is the third iteration of my personal site and the simplest by far. I just thought of the idea to use Git as the source of truth to build the site content. This makes the build stateless and allows us to leverage the power of git to determine the status of a document (published, draft, modified, deleted, etc...). And because Git logs everything we can easily extract more data for new features.</p>
+        >Macbooks are still king for software development
+        </h1><p>Around three years ago I had bought a top-of-the-line Razer Blade laptop that I thought would be the best of both worlds: a great gaming and dev machine. Initially, Microsoft&#39;s WSL felt pretty good, and for awhile I thought it could potentially replace Macos.</p>
+<p>Fast forward three years later and I&#39;m now back on the Macbook train for a number of reasons.</p>
 <h2
           class="mdHeader mdHeader2"
-        >Build Process
-        </h2><p>The build process turns out to be quite simple:</p>
-<ol>
-<li>Get all document files in the git repo:<pre class="language-sh"><code class="language-sh"><span class="token function">git</span> ls-files -- src/documents</code></pre></li>
-<li>Process each line with the following command to get the timestamp and commit hash<pre class="language-sh"><code class="language-sh"><span class="token function">git</span> log <span class="token parameter variable">--format</span><span class="token operator">=</span><span class="token punctuation">[</span>%ct<span class="token punctuation">]</span><span class="token punctuation">[</span>%h<span class="token punctuation">]</span> <span class="token parameter variable">-n1</span> <span class="token punctuation">{</span>filePath<span class="token punctuation">}</span></code></pre></li>
-<li>Render individual pages based on the file path of each modified file.</li>
-<li>Write each page to a <code>build</code> folder.</li>
-<li>Deploy to a static site service such as <a href="https://vercel.com">vercel</a> or <a href="https://surge.sh">surge.sh</a>.</li>
-</ol>
-
+        >WSL is amazing
+        </h2><p>I want to first begin by acknowledging the remarkable engineering effort Microsoft did to pull of running a native linux subsystem alongside the Windows operating system. The performance is generally very good, and for the first time in decades you can actually work in the terminal using all the powerful unix command line tools.</p>
+<p>Its also important to recognize that the vast majority of the world uses Windows simply because Apple products are at a luxury price point.</p>
+<h2
+          class="mdHeader mdHeader2"
+        >WSL also has many caveats
+        </h2><p>One of WSL&#39;s biggest drawbacks is it runs in a sandboxed environment separate from the Windows operating system. As a result, you&#39;ll encounter inconvenient quirks such as:</p>
+<ul>
+<li>Localhost in WSL not exposed as localhost to the browser. This makes it terribly inconvenient for web development. There are <a href="https://stackoverflow.com/questions/64763147/access-a-localhost-running-in-windows-from-inside-wsl2">solutions</a>, but it isn&#39;t very convenient.</li>
+<li>Accessing files between Windows and WSL is incredibly slow, and you often run into random file permission issues.</li>
+</ul>
+<p>Clearly I&#39;m not alone with all the frustrations as you&#39;ll see in this <a href="https://medium.com/for-linux-users/wsl-2-why-you-should-use-real-linux-instead-4ee14364c18">article</a>.</p>
+<h2
+          class="mdHeader mdHeader2"
+        >Macos just works
+        </h2>
               </div>
             </main>
   <footer class="footer">
