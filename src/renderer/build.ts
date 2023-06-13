@@ -311,6 +311,7 @@ chokidar.watch(siteConfig.documentsDir, {}).on(
   'all',
   debounce(async () => {
     console.log('Changes detected, rebuilding...')
+    const totalBuildTimeStart = performance.now()
     const publishedFiles = await measurePerformance(
       'Get file data',
       fileDataSortedByDate
@@ -328,5 +329,10 @@ chokidar.watch(siteConfig.documentsDir, {}).on(
       buildDir: siteConfig.buildDir,
       fileDataList: publishedFiles
     })
+    console.log(
+      'Total build time:',
+      performance.now() - totalBuildTimeStart,
+      'ms'
+    )
   }, 100)
 )
