@@ -5,93 +5,23 @@ import { DateTime } from 'luxon'
 import util from 'util'
 import fs from 'fs-extra'
 import { marked } from 'marked'
-import Prism from 'prismjs'
-import loadLanguages from 'prismjs/components/'
 import * as async from 'async'
 
 import { fileDataSortedByDate } from './fileDataSortedByDate'
 import type { FileData } from './fileDataSortedByDate'
 import { measurePerformance } from './utils'
+import { siteConfig } from './siteConfig'
+import { headContent, header, footer } from './shared-html'
+import { highlightCode } from './highlightCode'
 
 type CompleteDocument = FileData & {
   markdownBody: string
 }
 
-loadLanguages(['typescript', 'bash', 'json', 'jsx', 'tsx'])
-
-const siteConfig = {
-  dayJobCompany: {
-    name: 'Palo Alto Networks',
-    url: 'https://www.paloaltonetworks.com/'
-  },
-  documentsDir: 'src/documents',
-  buildDir: 'build'
-} as const
-
-const headContent = /* html */ `
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/base.css" />
-  <link rel="stylesheet" href="styles/header.css" />
-  <link rel="stylesheet" href="styles/footer.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
-`
-const header = /* html */ `
-  <header class="header">
-    <div class="innerContainer headerInnerContainer">
-      <a href="index.html" class="headerLink navLink navLogo">L K</a>
-      <div class="headerRightColumn">
-        <a href="https://github.com/leland-kwong" class="headerLink">
-          <i class="font-icon fa-brands fa-github"></i>
-        </a>
-      </div>
-    </div>
-  </header>
-`
-const footer = /* html */ `
-  <footer class="footer">
-    <div class="innerContainer">
-      <div class="aboutMe footerSection">
-        <div class="aboutMeImage">
-          <img class="Sirv" data-src="https://vicenbis.sirv.com/Images/lelandkwong.com/IMG_1387.jpeg" alt="">
-        </div>
-        <div class="aboutMeText">
-          <div class="aboutMeHello">Hello! My name is Leland Kwong. I work at <a href="${siteConfig.dayJobCompany.url}">${siteConfig.dayJobCompany.name}</a> as a software engineer.</div>
-          <p>I believe the best digital products involve a great user experience, tasteful design, and high-quality code.</p>
-        </div>
-      </div>
-      <div class="footerSection">
-        <div class="fontSmall">This site was deployed with <a href="https://vercel.com/">Vercel</a> and statically generated with a homebrew system.</div>
-        </div>
-      </div>
-    </div>
-  </footer>
-`
-
 function postDate(timestamp: number) {
   return DateTime.fromMillis(timestamp).toFormat(
     'LL/dd/yyyy'
   )
-}
-
-function highlightCode(code: string, lang: string) {
-  const langDef = Prism.languages[lang]
-
-  if (!langDef) {
-    throw new Error(
-      `[prismjs error] language \`${lang}\` not supported. Please add the language in your .babelrc file.`
-    )
-  }
-
-  const highlightedCode = Prism.highlight(
-    code,
-    langDef,
-    lang
-  )
-
-  return `<pre class="language-${lang}"><code class="language-${lang}">${highlightedCode}</code></pre>`
 }
 
 marked.use({
