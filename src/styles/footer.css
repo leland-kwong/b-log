@@ -12,12 +12,14 @@
 }
 
 .aboutMeImage {
-  width: 150px;
+  width: 160px;
+  min-width: 100px;
   margin: 0;
 }
 
 .aboutMeImage img {
   margin: 0;
+  border: 3px solid;
 }
 
 .aboutMeText {
