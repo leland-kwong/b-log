@@ -126,6 +126,10 @@ em {
   margin: 16px auto;
 }
 
+img {
+  max-width: 100%;
+}
+
 .imageSmall {
   max-width: 300px;
 }
