@@ -7,8 +7,8 @@ import fs from 'fs-extra'
 import { marked } from 'marked'
 import * as async from 'async'
 
-import { getFileData } from './fileDataSortedByDate'
-import type { FileData } from './fileDataSortedByDate'
+import { getFileData } from './getFileData'
+import type { FileData } from './getFileData'
 import { measurePerformance } from './utils'
 import { siteConfig } from './siteConfig'
 import { headContent, header, footer } from './shared-html'
@@ -107,12 +107,7 @@ interface Page {
   slug: string
 }
 
-async function readFile(filePath: string): Promise<string> {
-  const readFile = util.promisify(fs.readFile)
-  const file = await readFile(filePath, 'utf8')
-
-  return file
-}
+const readFile = util.promisify(fs.readFile)
 
 // gets document data for unstaged files
 async function getUncommittedFiles(): Promise<FileData[]> {
@@ -131,14 +126,17 @@ async function getUncommittedFiles(): Promise<FileData[]> {
       // get just the file path excluding the modification status
       .map((line) => line.slice(3))
 
-    return fileList.map((filePath) => ({
-      filePath,
-      // TODO: get the actual date added from git, and if it
-      // is a new file, then just use the current date
-      dateAdded: DateTime.utc().toMillis(),
-      dateModified: DateTime.utc().toMillis(),
-      draft: true
-    }))
+    return Promise.all(
+      fileList.map(async (filePath) => ({
+        filePath,
+        // TODO: get the actual date added from git, and if it
+        // is a new file, then just use the current date
+        dateAdded: DateTime.utc().toMillis(),
+        dateModified: DateTime.utc().toMillis(),
+        markdownBody: await readFile(filePath, 'utf8'),
+        draft: true
+      }))
+    )
   } catch (error: any) {
     const noLines =
       (error as childProcess.ExecException).code === 1
@@ -214,20 +212,6 @@ function writePages(
   })
 }
 
-async function getCompleteDocumentList(
-  fileData: FileData[]
-) {
-  return await Promise.all(
-    fileData.map(async (fileData) => {
-      const markdownBody = await readFile(fileData.filePath)
-      return {
-        ...fileData,
-        markdownBody
-      }
-    })
-  )
-}
-
 async function build({
   buildDir,
   parsedDocumentList
@@ -278,26 +262,22 @@ chokidar
         'Get file data',
         () => getFileData({ sortBy: 'dateAdded' })
       )
-      const parsedCommitedFiles: CompleteDocument[] =
-        await getCompleteDocumentList(commitedFiles)
 
       if (process.env.NODE_ENV === 'development') {
         const uncommittedFiles = await getUncommittedFiles()
-        const parsedUncommittedFiles: CompleteDocument[] =
-          await getCompleteDocumentList(uncommittedFiles)
 
         await build({
           buildDir: '.local-dev-build',
           parsedDocumentList: [
-            ...parsedUncommittedFiles,
-            ...parsedCommitedFiles
+            ...uncommittedFiles,
+            ...commitedFiles
           ]
         })
       }
 
       await build({
         buildDir: siteConfig.buildDir,
-        parsedDocumentList: parsedCommitedFiles
+        parsedDocumentList: commitedFiles
       })
       console.log(
         'Total build time:',
