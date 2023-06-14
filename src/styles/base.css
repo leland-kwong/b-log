@@ -7,7 +7,7 @@
   --secondary-color: #ae3535;
   --monospace-font: 'JetBrains Mono', monospace;
   --body-font: 'Geologica', sans-serif;
-  --body-text-color: #000;
+  --body-text-color: #111;
   --main-background-color: #fff;
 
   font-family: var(--body-font);
