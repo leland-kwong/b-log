@@ -7,6 +7,9 @@ export const headContent = /* html */ `
   <link rel="stylesheet" href="styles/base.css" />
   <link rel="stylesheet" href="styles/header.css" />
   <link rel="stylesheet" href="styles/footer.css" />
+  <link rel="icon"
+        type="image/png"
+        href="assets/favicons/favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://scripts.sirv.com/sirvjs/v3/sirv.js"></script>
 `
