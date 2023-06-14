@@ -7,7 +7,7 @@ import fs from 'fs-extra'
 import { marked } from 'marked'
 import * as async from 'async'
 
-import { fileDataSortedByDate } from './fileDataSortedByDate'
+import { getFileData } from './fileDataSortedByDate'
 import type { FileData } from './fileDataSortedByDate'
 import { measurePerformance } from './utils'
 import { siteConfig } from './siteConfig'
@@ -75,12 +75,12 @@ function renderBlogHome(
         .at(-1)
         ?.replace(/.md/, '')
         .replace(/-/g, ' ')
-      const { timestamp } = parsedDocument
+      const { dateAdded } = parsedDocument
       return `
         <div class="postItem">
           <a class="postLink ${draftClass}" href="${slug}">${titleFromFilePath}</a>
           <span class="postDate">${postDate(
-            timestamp
+            dateAdded
           )}</span>
         </div>
       `
@@ -133,7 +133,10 @@ async function getUncommittedFiles(): Promise<FileData[]> {
 
     return fileList.map((filePath) => ({
       filePath,
-      timestamp: DateTime.utc().toMillis(),
+      // TODO: get the actual date added from git, and if it
+      // is a new file, then just use the current date
+      dateAdded: DateTime.utc().toMillis(),
+      dateModified: DateTime.utc().toMillis(),
       draft: true
     }))
   } catch (error: any) {
@@ -154,7 +157,7 @@ function renderPages(
     const slug = slugFromFileData(parsedDocument)
     const draftClass =
       draftClassFromFileData(parsedDocument)
-    const { timestamp } = parsedDocument
+    const { dateAdded } = parsedDocument
     const htmlFromMarkdown = marked.parse(markdownBody, {
       mangle: false,
       headerIds: false
@@ -168,7 +171,7 @@ function renderPages(
         `<main>
               <div class="innerContainer">
                 <span class="postDate ${draftClass}">${postDate(
-          timestamp
+          dateAdded
         )}</span>
                 ${htmlFromMarkdown}
               </div>
@@ -259,7 +262,7 @@ chokidar
       const totalBuildTimeStart = performance.now()
       const commitedFiles = await measurePerformance(
         'Get file data',
-        fileDataSortedByDate
+        () => getFileData({ sortBy: 'dateAdded' })
       )
       const parsedCommitedFiles: CompleteDocument[] =
         await Promise.all(

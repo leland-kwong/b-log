@@ -4,9 +4,10 @@ import fs from 'node:fs'
 import * as R from 'ramda'
 
 export type FileData = {
-  // timestamp in milliseconds
-  timestamp: number
   filePath: string
+  // effectively the date the file was "published"
+  dateAdded: number
+  dateModified?: number
   draft?: boolean
 }
 
@@ -20,20 +21,19 @@ function extractWordsBetweenBrackets(text: string) {
   )
 }
 
-export async function fileDataSortedByDate(
-  workingDir = '.'
-) {
+export async function getFileData({
+  sortBy
+}: {
+  sortBy: keyof Pick<FileData, 'dateAdded'>
+}) {
   const fsExists = util.promisify(fs.exists)
-  const gitListFilesCmd = [
-    `cd ${workingDir}`,
-    ' && ',
-    `git ls-files -- src/documents`
-  ].join('')
+  const gitListFilesCmd = `git ls-files -- src/documents`
+
   const filePaths = await exec(gitListFilesCmd)
   const filesArray = filePaths.stdout.trim().split('\n')
 
   return R.sort(
-    R.descend(R.prop('timestamp')),
+    R.descend(R.prop(sortBy)),
     await filesArray.reduce(async (results, filePath) => {
       if (!(await fsExists(filePath))) {
         console.log(
@@ -43,11 +43,7 @@ export async function fileDataSortedByDate(
         )
         return results
       }
-      const gitGetFileInfoCmd = [
-        `cd ${workingDir}`,
-        ' && ',
-        `git log --format=[%ct][%h] -n1 ${filePath}`
-      ].join('')
+      const gitGetFileInfoCmd = `git log --format=[%ct][%h] --diff-filter=A -n1 ${filePath}`
       const { stderr, stdout } = await exec(
         gitGetFileInfoCmd
       )
@@ -57,7 +53,7 @@ export async function fileDataSortedByDate(
       const [timestamp] =
         extractWordsBetweenBrackets(stdout)
       const info: FileData = {
-        timestamp: Number(timestamp) * 1000,
+        dateAdded: Number(timestamp) * 1000,
         filePath
       }
       return [...(await results), info]
