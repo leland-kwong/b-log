@@ -214,6 +214,20 @@ function writePages(
   })
 }
 
+async function getCompleteDocumentList(
+  fileData: FileData[]
+) {
+  return await Promise.all(
+    fileData.map(async (fileData) => {
+      const markdownBody = await readFile(fileData.filePath)
+      return {
+        ...fileData,
+        markdownBody
+      }
+    })
+  )
+}
+
 async function build({
   buildDir,
   parsedDocumentList
@@ -265,24 +279,12 @@ chokidar
         () => getFileData({ sortBy: 'dateAdded' })
       )
       const parsedCommitedFiles: CompleteDocument[] =
-        await Promise.all(
-          commitedFiles.map(async (fileData) => ({
-            ...fileData,
-            markdownBody: await readFile(fileData.filePath)
-          }))
-        )
+        await getCompleteDocumentList(commitedFiles)
 
       if (process.env.NODE_ENV === 'development') {
         const uncommittedFiles = await getUncommittedFiles()
         const parsedUncommittedFiles: CompleteDocument[] =
-          await Promise.all(
-            uncommittedFiles.map(async (fileData) => ({
-              ...fileData,
-              markdownBody: await readFile(
-                fileData.filePath
-              )
-            }))
-          )
+          await getCompleteDocumentList(uncommittedFiles)
 
         await build({
           buildDir: '.local-dev-build',
