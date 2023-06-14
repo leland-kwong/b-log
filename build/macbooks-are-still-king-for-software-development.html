@@ -31,22 +31,23 @@
 <p>Fast forward three years later and I&#39;m now back on the Macbook train for a number of reasons.</p>
 <h2
           class="mdHeader mdHeader2"
-        >WSL is amazing
-        </h2><p>I want to first begin by acknowledging the remarkable engineering effort Microsoft did to pull of running a native linux subsystem alongside the Windows operating system. The performance is generally very good, and for the first time in decades you can actually work in the terminal using all the powerful unix command line tools.</p>
-<p>Its also important to recognize that the vast majority of the world uses Windows simply because Apple products are at a luxury price point.</p>
-<h2
-          class="mdHeader mdHeader2"
-        >WSL also has many caveats
-        </h2><p>One of WSL&#39;s biggest drawbacks is it runs in a sandboxed environment separate from the Windows operating system. As a result, you&#39;ll encounter inconvenient quirks such as:</p>
+        >The quirks of WSL
+        </h2><p>One of WSL&#39;s biggest drawbacks is it runs in a sandboxed environment separate from the Windows operating system. As a result, you&#39;ll encounter quirks such as:</p>
 <ul>
 <li>Localhost in WSL not exposed as localhost to the browser. This makes it terribly inconvenient for web development. There are <a href="https://stackoverflow.com/questions/64763147/access-a-localhost-running-in-windows-from-inside-wsl2">solutions</a>, but it isn&#39;t very convenient.</li>
-<li>Accessing files between Windows and WSL is incredibly slow, and you often run into random file permission issues.</li>
+<li>Accessing files between Windows and WSL is incredibly slow, and you can run into strange <a href="https://github.com/pyenv/pyenv/issues/1725">file system issues</a>.</li>
+<li>Most of the documentation out there assumes you&#39;re either on a Mac or linux machine. So whenever you run into one WSL&#39;s obscure error messages, you&#39;re left scratching your head and googling for an answer.</li>
 </ul>
 <p>Clearly I&#39;m not alone with all the frustrations as you&#39;ll see in this <a href="https://medium.com/for-linux-users/wsl-2-why-you-should-use-real-linux-instead-4ee14364c18">article</a>.</p>
 <h2
           class="mdHeader mdHeader2"
-        >Macos just works
-        </h2>
+        >Latest Macbook hardware is chefs kiss
+        </h2><p>With the recent release of <a href="https://appleinsider.com/inside/apple-silicon">Apple Silicon</a>, the battery life and performance has improved dramatically. Its not uncommon to get 8 hours of usage on a single charge, and the fans rarely ever kick off, all while your compile times and scripts run buttery smooth and quick. It is night and day with how smooth the development experience is compared to Windows.</p>
+<h2
+          class="mdHeader mdHeader2"
+        >WSL is still amazing
+        </h2><p>All this to say that Microsoft still did a remarkable engineering effort to pull of running a native linux subsystem alongside the Windows operating system. The performance is generally very good, and for the first time in decades you can actually work in the terminal using all the powerful unix command line tools.</p>
+
               </div>
             </main>
   <footer class="footer">
