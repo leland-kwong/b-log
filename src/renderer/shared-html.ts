@@ -30,7 +30,7 @@ export const footer = /* html */ `
     <div class="innerContainer">
       <div class="aboutMe footerSection">
         <div class="aboutMeImage">
-          <img class="Sirv" data-src="https://vicenbis.sirv.com/Images/lelandkwong.com/IMG_1387.jpeg" alt="">
+          <img class="Sirv" data-src="https://vicenbis.sirv.com/Images/lelandkwong.com/lelandkwong-1.jpeg" alt="">
         </div>
         <div class="aboutMeText">
           <div class="aboutMeHello">Hello! My name is Leland Kwong. I work at <a href="${siteConfig.dayJobCompany.url}">${siteConfig.dayJobCompany.name}</a> as a software engineer.</div>
