@@ -247,55 +247,62 @@ async function build({
 }
 
 console.log('Watching documents for changes...')
-chokidar.watch(siteConfig.documentsDir, {}).on(
-  'all',
-  debounce(async () => {
-    console.log('Changes detected, rebuilding...')
-    const totalBuildTimeStart = performance.now()
-    const commitedFiles = await measurePerformance(
-      'Get file data',
-      fileDataSortedByDate
-    )
-    const parsedCommitedFiles: CompleteDocument[] =
-      await Promise.all(
-        commitedFiles.map(async (fileData) => ({
-          ...fileData,
-          markdownBody: await readFile(fileData.filePath)
-        }))
+chokidar
+  .watch(
+    [siteConfig.documentsDir, 'src/styles', 'src/assets'],
+    {}
+  )
+  .on(
+    'all',
+    debounce(async () => {
+      console.log('Changes detected, rebuilding...')
+      const totalBuildTimeStart = performance.now()
+      const commitedFiles = await measurePerformance(
+        'Get file data',
+        fileDataSortedByDate
       )
-
-    if (process.env.NODE_ENV === 'development') {
-      const uncommittedFiles = await getUncommittedFiles()
-      const parsedUncommittedFiles: CompleteDocument[] =
+      const parsedCommitedFiles: CompleteDocument[] =
         await Promise.all(
-          uncommittedFiles.map(async (fileData) => ({
+          commitedFiles.map(async (fileData) => ({
             ...fileData,
             markdownBody: await readFile(fileData.filePath)
           }))
         )
 
+      if (process.env.NODE_ENV === 'development') {
+        const uncommittedFiles = await getUncommittedFiles()
+        const parsedUncommittedFiles: CompleteDocument[] =
+          await Promise.all(
+            uncommittedFiles.map(async (fileData) => ({
+              ...fileData,
+              markdownBody: await readFile(
+                fileData.filePath
+              )
+            }))
+          )
+
+        await build({
+          buildDir: '.local-dev-build',
+          parsedDocumentList: [
+            ...parsedUncommittedFiles,
+            ...parsedCommitedFiles
+          ]
+        })
+      }
+
       await build({
-        buildDir: '.local-dev-build',
-        parsedDocumentList: [
-          ...parsedUncommittedFiles,
-          ...parsedCommitedFiles
-        ]
+        buildDir: siteConfig.buildDir,
+        parsedDocumentList: parsedCommitedFiles
       })
-    }
+      console.log(
+        'Total build time:',
+        performance.now() - totalBuildTimeStart,
+        'ms'
+      )
 
-    await build({
-      buildDir: siteConfig.buildDir,
-      parsedDocumentList: parsedCommitedFiles
-    })
-    console.log(
-      'Total build time:',
-      performance.now() - totalBuildTimeStart,
-      'ms'
-    )
-
-    // only watch for changes in dev mode
-    if (process.env.NODE_ENV !== 'development') {
-      process.exit(0)
-    }
-  }, 100)
-)
+      // only watch for changes in dev mode
+      if (process.env.NODE_ENV !== 'development') {
+        process.exit(0)
+      }
+    }, 100)
+  )
