@@ -10,7 +10,7 @@ One of WSL's biggest drawbacks is it runs in a sandboxed environment separate fr
 
 * Localhost in WSL not exposed as localhost to the browser. This makes it terribly inconvenient for web development. There are [solutions](https://stackoverflow.com/questions/64763147/access-a-localhost-running-in-windows-from-inside-wsl2), but it isn't very convenient.
 * Accessing files between Windows and WSL is incredibly slow, and you can run into strange [file system issues](https://github.com/pyenv/pyenv/issues/1725).
-* Most of the documentation out there assumes you're either on a Mac or linux machine. So whenever you run into one WSL's obscure error messages, you're left scratching your head and googling for an answer.
+* Most of the documentation out there assumes you're either on a Mac or linux machine. So whenever you run into one of WSL's obscure error messages, you're left scratching your head and googling for an answer.
 
 Clearly I'm not alone with all the frustrations as you'll see in this [article](https://medium.com/for-linux-users/wsl-2-why-you-should-use-real-linux-instead-4ee14364c18).
 
@@ -20,5 +20,5 @@ With the recent release of [Apple Silicon](https://appleinsider.com/inside/apple
 
 ## WSL is still amazing
 
-All this to say that Microsoft still did a remarkable engineering effort to pull of running a native linux subsystem alongside the Windows operating system. The performance is generally very good, and for the first time in decades you can actually work in the terminal using all the powerful unix command line tools.
+All this to say that Microsoft still did a remarkable engineering effort to pull off running a native linux subsystem alongside the Windows operating system. The performance is generally very good, and for the first time in decades you can actually work in the terminal using all the powerful unix command line tools.
 
