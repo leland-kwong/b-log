@@ -13,6 +13,7 @@ import { measurePerformance } from './utils'
 import { siteConfig } from './siteConfig'
 import { headContent, header, footer } from './shared-html'
 import { highlightCode } from './highlightCode'
+import { replaceVariables } from './replaceVariables'
 
 type CompleteDocument = FileData & {
   markdownBody: string
@@ -63,7 +64,8 @@ function draftClassFromFileData(
 }
 
 function renderBlogHome(
-  fileDataSortedByDate: CompleteDocument[]
+  fileDataSortedByDate: CompleteDocument[],
+  imageBasePath: string
 ) {
   const postsList = fileDataSortedByDate
     .map((parsedDocument) => {
@@ -98,7 +100,7 @@ function renderBlogHome(
         </div>
       </div>
      </main>`,
-    footer
+    footer({ imageBasePath })
   ].join('\n')
 }
 
@@ -147,8 +149,44 @@ async function getUncommittedFiles(): Promise<FileData[]> {
   }
 }
 
+function transformVariablesInMarkdown(
+  markdownText: string,
+  variablesMap: Record<string, string>
+) {
+  // while loop through text and replace variables with values
+  const variableDelimiters = ['{{', '}}']
+  const variableRegex = new RegExp(
+    `${variableDelimiters[0]}[^{}]+${variableDelimiters[1]}`,
+    'g'
+  )
+  // while loop through text and replace variables with values
+  let markdownTextWithVariablesReplaced = markdownText
+  let match = variableRegex.exec(markdownText)
+  while (match) {
+    console.log('match', match)
+    const variableName = match[0].slice(
+      variableDelimiters[0].length,
+      -variableDelimiters[1].length
+    )
+    if (!variablesMap[variableName]) {
+      throw new Error(
+        `Variable "${variableName}" not found in variables map`
+      )
+    }
+    markdownTextWithVariablesReplaced =
+      markdownTextWithVariablesReplaced.replace(
+        match[0],
+        variablesMap[variableName]
+      )
+    match = variableRegex.exec(markdownText)
+  }
+
+  return markdownTextWithVariablesReplaced
+}
+
 function renderPages(
-  parsedDocumentList: CompleteDocument[]
+  parsedDocumentList: CompleteDocument[],
+  imageBasePath: string
 ): Page[] {
   return parsedDocumentList.map((parsedDocument) => {
     const { markdownBody } = parsedDocument
@@ -156,10 +194,15 @@ function renderPages(
     const draftClass =
       draftClassFromFileData(parsedDocument)
     const { dateAdded } = parsedDocument
-    const htmlFromMarkdown = marked.parse(markdownBody, {
-      mangle: false,
-      headerIds: false
-    })
+    const htmlFromMarkdown = marked.parse(
+      replaceVariables(markdownBody, {
+        imageBasePath
+      }),
+      {
+        mangle: false,
+        headerIds: false
+      }
+    )
 
     return {
       html: [
@@ -174,7 +217,7 @@ function renderPages(
                 ${htmlFromMarkdown}
               </div>
             </main>`,
-        footer
+        footer({ imageBasePath })
       ].join(''),
       slug
     }
@@ -214,20 +257,22 @@ function writePages(
 
 async function build({
   buildDir,
-  parsedDocumentList
+  parsedDocumentList,
+  imageBasePath
 }: {
   buildDir: string
   parsedDocumentList: CompleteDocument[]
+  imageBasePath: string
 }) {
   const buildStartTime = performance.now()
 
   const renderedHomePage = await measurePerformance(
     'Render homepage',
-    () => renderBlogHome(parsedDocumentList)
+    () => renderBlogHome(parsedDocumentList, imageBasePath)
   )
   const renderedPages = await measurePerformance(
     'Render pages',
-    () => renderPages(parsedDocumentList)
+    () => renderPages(parsedDocumentList, imageBasePath)
   )
   await measurePerformance('Prepare dirs', async () => {
     await fs.ensureDir(buildDir)
@@ -267,17 +312,20 @@ chokidar
         const uncommittedFiles = await getUncommittedFiles()
 
         await build({
-          buildDir: '.local-dev-build',
+          buildDir: siteConfig.buildDir.development,
           parsedDocumentList: [
             ...uncommittedFiles,
             ...commitedFiles
-          ]
+          ],
+          imageBasePath:
+            siteConfig.imageBasePath.development
         })
       }
 
       await build({
-        buildDir: siteConfig.buildDir,
-        parsedDocumentList: commitedFiles
+        buildDir: siteConfig.buildDir.production,
+        parsedDocumentList: commitedFiles,
+        imageBasePath: siteConfig.imageBasePath.production
       })
       console.log(
         'Total build time:',

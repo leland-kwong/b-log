@@ -9,6 +9,7 @@
   --body-font: 'Geologica', sans-serif;
   --body-text-color: #111;
   --main-background-color: #fff;
+  --container-side-padding: 16px;
 
   font-family: var(--body-font);
   font-size: 16px;
@@ -74,13 +75,15 @@ li {
 .innerContainer {
   margin: 0 auto;
   padding: 16px 0;
-  width: calc(100% - 32px);
-  max-width: 800px;
+  width: calc(100% - var(--container-side-padding) * 2);
+  max-width: 720px;
 }
 
 .mdHeader {
   --border-width: 5px;
-  --padding: 8px;
+  --padding: calc(
+    var(--container-side-padding) - var(--border-width)
+  );
   font-weight: bold;
   border-left: var(--border-width) solid
     var(--secondary-color);
@@ -88,6 +91,10 @@ li {
   line-height: 1.2;
   margin-top: 24px;
   margin-bottom: 16px;
+  margin-left: calc(
+    (var(--border-width) + var(--padding)) * -1
+  );
+  color: #000;
 }
 
 .mdHeader1:first-of-type {

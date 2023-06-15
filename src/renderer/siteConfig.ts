@@ -4,5 +4,13 @@ export const siteConfig = {
     url: 'https://www.paloaltonetworks.com/'
   },
   documentsDir: 'src/documents',
-  buildDir: 'build'
+  buildDir: {
+    development: '.local-dev-build',
+    production: 'build'
+  },
+  imageBasePath: {
+    development: 'assets/images',
+    production:
+      'https://vicenbis.sirv.com/Images/lelandkwong.com'
+  }
 } as const
