@@ -20,7 +20,7 @@ export default function Home() {
             Current work
           </h2>
           <a
-            href="https://enterprise-ux-patterns.com"
+            href="https://patterns.lelandkwong.com"
             className="text-2xl md:text-3xl font-semibold underline decoration-2 underline-offset-4 hover:decoration-4 transition-all"
           >
             Enterprise UX Patterns
